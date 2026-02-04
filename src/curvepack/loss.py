@@ -75,7 +75,9 @@ def separation_loss(
 
     dist = jnp.sqrt(segseg_dist2(a, b, c, d) + 1e-12)
     dmin = r[pair_i] + r[pair_j] + delta
-    return w * jnp.sum(squared_hinge(dmin - dist))
+    # Normalize by number of pairs to keep scale stable
+    pair_count = jnp.maximum(pair_i.shape[0], 1)
+    return w * jnp.sum(squared_hinge(dmin - dist)) / pair_count
 
 
 @jaxtyped(typechecker=beartype)

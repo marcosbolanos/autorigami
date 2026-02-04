@@ -1,189 +1,51 @@
 from __future__ import annotations
 
-from typing import Callable, TypeAlias, cast
+import time
+from typing import cast
 
-import numpy as np
 import jax
 import jax.numpy as jnp
+import numpy as np
 import optax  # type: ignore[reportMissingTypeStubs]
 from beartype import beartype
-from jaxtyping import Float, Int, jaxtyped
+from jaxtyping import jaxtyped
 
-from .loss import inside_loss, curvature_loss, separation_loss, fill_reward
+from .optimize_checkpoint import (
+    CheckpointRun,
+    CHECKPOINT_CSV_FIELDS,
+    append_metrics_csv,
+    init_checkpoint_run,
+    save_checkpoint_npz,
+    save_checkpoint_svg,
+)
+from . import optimize_init
+from .optimize_loss import make_loss_fn, make_loss_terms_fn
+from .optimize_pairs import build_pairs_spatial_hash
+from .optimize_types import (
+    JaxControlPoints,
+    JaxRadii,
+    JaxScalar,
+    NpBasisMatrix,
+    NpControlPoints,
+    NpOrigin,
+    NpRadii,
+    NpSamplePoints,
+    NpSdfGrid,
+    PairsJax,
+    PairsNp,
+)
+from .. import PROJECT_ROOT
+from ..utils import debug, debug_helpers
 
-NpControlPoints: TypeAlias = Float[np.ndarray, "C n_ctrl 2"]
-NpBasisMatrix: TypeAlias = Float[np.ndarray, "M n_ctrl"]
-NpSdfGrid: TypeAlias = Float[np.ndarray, "H W"]
-NpOrigin: TypeAlias = Float[np.ndarray, "2"]
-NpSamplePoints: TypeAlias = Float[np.ndarray, "Q 2"]
-NpCurveSamples: TypeAlias = Float[np.ndarray, "C M 2"]
-NpRadii: TypeAlias = Float[np.ndarray, "C"]
-PairsNp: TypeAlias = tuple[
-    Int[np.ndarray, "P"],
-    Int[np.ndarray, "P"],
-    Int[np.ndarray, "P"],
-    Int[np.ndarray, "P"],
+__all__ = [
+    "sample_init_control_points",
+    "build_pairs_spatial_hash",
+    "make_loss_fn",
+    "make_loss_terms_fn",
+    "optimize_curves",
 ]
-JaxControlPoints: TypeAlias = Float[jax.Array, "C n_ctrl 2"]
-JaxRadii: TypeAlias = Float[jax.Array, "C"]
-PairsJax: TypeAlias = tuple[
-    Int[jax.Array, "P"],
-    Int[jax.Array, "P"],
-    Int[jax.Array, "P"],
-    Int[jax.Array, "P"],
-]
-JaxScalar: TypeAlias = Float[jax.Array, ""]
-LossFn: TypeAlias = Callable[[JaxControlPoints, PairsJax, JaxRadii], JaxScalar]
 
-
-@jaxtyped(typechecker=beartype)
-def sample_init_control_points(
-    Y: NpSamplePoints,
-    C: int,
-    n_ctrl: int,
-    rng: np.random.Generator,
-) -> NpControlPoints:
-    """
-    Initialize control points by picking random interior points and smoothing them.
-    Returns P0: (C,n_ctrl,2)
-    """
-    Q = Y.shape[0]
-    P0 = np.zeros((C, n_ctrl, 2), dtype=np.float32)
-    for i in range(C):
-        idx = rng.integers(0, Q, size=n_ctrl)
-        pts = Y[idx].copy()
-        # mild smoothing along index
-        for _ in range(5):
-            pts[1:-1] = 0.25 * pts[:-2] + 0.5 * pts[1:-1] + 0.25 * pts[2:]
-        P0[i] = pts
-    return P0
-
-
-@jaxtyped(typechecker=beartype)
-def build_pairs_spatial_hash(
-    X: NpCurveSamples,
-    r_max: float,
-    cell: float,
-    exclude_adj: int = 2,
-    max_pairs: int = 200000,
-) -> PairsNp:
-    """
-    Build candidate segment pairs for separation loss using a uniform grid hash.
-    X: (C,M,2) samples in numpy
-    r_max: max tube radius + clearance
-    cell: grid cell size (recommend ~ r_max)
-    exclude_adj: for same curve, exclude segment pairs with |k-l| <= exclude_adj
-    Returns (pair_i, pair_k, pair_j, pair_l) int32 arrays.
-    """
-    C, M, _ = X.shape
-    S = M - 1
-
-    # Segment midpoints for hashing
-    A = X[:, :-1, :]
-    B = X[:, 1:, :]
-    mid = 0.5 * (A + B)  # (C,S,2)
-
-    mins = mid.reshape(-1, 2).min(axis=0)
-    # map to grid coordinates
-    gx = np.floor((mid[..., 0] - mins[0]) / cell).astype(np.int32)
-    gy = np.floor((mid[..., 1] - mins[1]) / cell).astype(np.int32)
-
-    # hash dict: (gx,gy)-> list of (curve, seg)
-    buckets: dict[tuple[int, int], list[tuple[int, int]]] = {}
-    for i in range(C):
-        for k in range(S):
-            key = (gx[i, k], gy[i, k])
-            buckets.setdefault(key, []).append((i, k))
-
-    # For each bucket, check within neighboring buckets
-    pair_i: list[int] = []
-    pair_k: list[int] = []
-    pair_j: list[int] = []
-    pair_l: list[int] = []
-
-    def add_pair(i: int, k: int, j: int, l: int) -> None:
-        pair_i.append(i)
-        pair_k.append(k)
-        pair_j.append(j)
-        pair_l.append(l)
-
-    neigh: list[tuple[int, int]] = [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 0),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ]
-    for key, items in buckets.items():
-        bx, by = key
-        # collect candidate neighbor items
-        cand: list[tuple[int, int]] = []
-        for dx, dy in neigh:
-            cand.extend(buckets.get((bx + dx, by + dy), []))
-        # brute force within candidates
-        for i, k in items:
-            for j, l in cand:
-                # avoid duplicates by ordering
-                if (j < i) or (j == i and l <= k):
-                    continue
-                if i == j and abs(k - l) <= exclude_adj:
-                    continue
-                add_pair(i, k, j, l)
-                if len(pair_i) >= max_pairs:
-                    break
-            if len(pair_i) >= max_pairs:
-                break
-        if len(pair_i) >= max_pairs:
-            break
-
-    return (
-        np.asarray(pair_i, np.int32),
-        np.asarray(pair_k, np.int32),
-        np.asarray(pair_j, np.int32),
-        np.asarray(pair_l, np.int32),
-    )
-
-
-@jaxtyped(typechecker=beartype)
-def make_loss_fn(
-    B: NpBasisMatrix,
-    sdf: NpSdfGrid,
-    origin: NpOrigin,
-    h: float,
-    Y: NpSamplePoints,
-    Rmin: float,
-    delta: float,
-    r_fill: float,
-    tau_fill: float,
-    w_inside: float,
-    w_curv: float,
-    w_sep: float,
-    w_fill: float,
-) -> LossFn:
-    """
-    Returns a JAX function loss(P, pairs, r) -> scalar.
-    """
-    B_j = jnp.asarray(B)
-    sdf_j = jnp.asarray(sdf)
-    origin_j = jnp.asarray(origin)
-    Y_j = jnp.asarray(Y)
-
-    def loss(P: JaxControlPoints, pairs: PairsJax, r: JaxRadii) -> JaxScalar:
-        # sample: X = B @ P (per curve)
-        X = jnp.einsum("mn,cnd->cmd", B_j, P)
-
-        Li = inside_loss(X, sdf_j, origin_j, h, r, w=w_inside)
-        Lc = curvature_loss(X, Rmin, w=w_curv)
-        Ls = separation_loss(X, r, pairs, delta=delta, w=w_sep)
-        Lf = fill_reward(X, Y_j, r_fill=r_fill, tau=tau_fill, w=w_fill)
-
-        return Li + Lc + Ls + Lf
-
-    return loss
+sample_init_control_points = optimize_init.sample_init_control_points
 
 
 @jaxtyped(typechecker=beartype)
@@ -199,9 +61,9 @@ def optimize_curves(
     steps: int = 2000,
     lr: float = 1e-2,
     weight_decay: float = 1e-4,
-    Rmin: float = 20.0,
-    delta: float = 2.0,
-    r_fill: float = 6.0,
+    Rmin: float = 6.0,
+    delta: float = 0.6,
+    r_fill: float = 1.0,
     tau_fill: float = 2.0,
     w_inside: float = 5.0,
     w_curv: float = 1.0,
@@ -210,6 +72,9 @@ def optimize_curves(
     pair_cell: float | None = None,
     seed: int = 0,
     log_every: int = 50,
+    checkpoint_every: int | None = 500,
+    checkpoint_svgs: bool = True,
+    checkpoint_csv: bool = True,
 ) -> tuple[NpControlPoints, float]:
     """
     Optimize control points P (C,n_ctrl,2).
@@ -235,9 +100,46 @@ def optimize_curves(
         w_sep,
         w_fill,
     )
+    loss_terms_fn = make_loss_terms_fn(
+        B,
+        sdf,
+        origin,
+        h,
+        Y,
+        Rmin,
+        delta,
+        r_fill,
+        tau_fill,
+        w_inside,
+        w_curv,
+        w_sep,
+        w_fill,
+    )
     grad_fn = jax.grad(loss_fn)
 
-    opt = optax.adamw(learning_rate=lr, weight_decay=weight_decay)
+    warmup_steps = max(200, int(0.03 * steps))
+    warmup_steps = min(warmup_steps, max(1, steps - 1))
+    decay_steps = max(1, steps - warmup_steps)
+    end_lr = lr * 0.02
+    schedule = optax.warmup_cosine_decay_schedule(
+        init_value=0.0,
+        peak_value=lr,
+        warmup_steps=warmup_steps,
+        decay_steps=decay_steps,
+        end_value=end_lr,
+    )
+    if debug.is_verbose():
+        debug.log(
+            "lr_schedule "
+            f"warmup_steps={warmup_steps} decay_steps={decay_steps} "
+            f"peak_lr={lr:.6g} end_lr={end_lr:.6g}"
+        )
+
+    opt = optax.chain(
+        optax.zero_nans(),
+        optax.clip_by_global_norm(1e2),
+        optax.adamw(learning_rate=schedule, weight_decay=weight_decay),
+    )
     opt_state = opt.init(P_ctrl)
 
     # JIT the update step (pairs fed as dynamic arrays; ok)
@@ -256,10 +158,75 @@ def optimize_curves(
 
     r_j: JaxRadii = jnp.asarray(r)
 
+    if checkpoint_every is not None and checkpoint_every <= 0:
+        checkpoint_every = None
+
+    checkpoint_run: CheckpointRun | None
+    if checkpoint_every is None:
+        checkpoint_run = None
+    else:
+        metadata = {
+            "seed": int(seed),
+            "steps": int(steps),
+            "lr": float(lr),
+            "weight_decay": float(weight_decay),
+            "Rmin": float(Rmin),
+            "delta": float(delta),
+            "r_fill": float(r_fill),
+            "tau_fill": float(tau_fill),
+            "w_inside": float(w_inside),
+            "w_curv": float(w_curv),
+            "w_sep": float(w_sep),
+            "w_fill": float(w_fill),
+            "pair_cell": float(pair_cell_value),
+            "warmup_steps": int(warmup_steps),
+            "decay_steps": int(decay_steps),
+            "end_lr": float(end_lr),
+            "checkpoint_every": int(checkpoint_every),
+            "checkpoint_svgs": bool(checkpoint_svgs),
+            "checkpoint_csv": bool(checkpoint_csv),
+            "shapes": {
+                "P0": list(P0.shape),
+                "B": list(B.shape),
+                "sdf": list(sdf.shape),
+                "origin": list(origin.shape),
+                "Y": list(Y.shape),
+                "r": list(r.shape),
+            },
+            "r_stats": {
+                "min": float(np.min(r)),
+                "max": float(np.max(r)),
+                "mean": float(np.mean(r)),
+            },
+        }
+        checkpoint_run = init_checkpoint_run(
+            PROJECT_ROOT / "data" / "checkpoints", metadata
+        )
+
     last_L = float("nan")
+    start_time = time.perf_counter()
+    debug_steps = 5
     for t in range(steps):
+        step_start = time.perf_counter()
         # Build pairs outside JAX using current sampled X (numpy)
         X_np = np.einsum("mn,cnd->cmd", B, np.array(P_ctrl))  # (C,M,2)
+        if debug.is_verbose() and t == 0:
+            debug_helpers.log_array("X_np", X_np)
+            debug.log(
+                f"pair_hash_params: pair_cell={pair_cell_value:.6g} "
+                f"r_max={float(np.max(r) + delta):.6g} delta={delta:.6g}"
+            )
+        if debug.is_verbose() and not np.isfinite(X_np).all():
+            debug_helpers.log_once(
+                "X_np_nonfinite",
+                f"X_np non-finite at step {t}",
+            )
+            debug_helpers.log_array_once("X_np_nonfinite_arr", "X_np", X_np)
+            debug_helpers.log_array_once(
+                "P_ctrl_nonfinite_arr",
+                "P_ctrl",
+                np.array(P_ctrl),
+            )
         pairs_np: PairsNp = build_pairs_spatial_hash(
             X_np,
             r_max=float(np.max(r) + delta),
@@ -276,7 +243,78 @@ def optimize_curves(
             pair_l_jax,
         )
 
+        if debug.is_verbose() and t < debug_steps:
+            Li, Lc, Ls, Lf = loss_terms_fn(P_ctrl, pairs_j, r_j)
+            li_val = float(Li)
+            lc_val = float(Lc)
+            ls_val = float(Ls)
+            lf_val = float(Lf)
+            total = li_val + lc_val + ls_val + lf_val
+            debug.log(
+                "loss_terms "
+                f"step={t} inside={li_val:.6g} curv={lc_val:.6g} "
+                f"sep={ls_val:.6g} fill={lf_val:.6g} total={total:.6g}"
+            )
+            if not np.isfinite([li_val, lc_val, ls_val, lf_val]).all():
+                raise ValueError(
+                    "Non-finite loss terms at step "
+                    f"{t}: inside={li_val} curv={lc_val} sep={ls_val} fill={lf_val}"
+                )
+
         P_ctrl, opt_state, L = step(P_ctrl, opt_state, pairs_j, r_j)
+
+        if checkpoint_run is not None and checkpoint_every is not None:
+            step_idx = t + 1
+            if (step_idx % checkpoint_every) == 0:
+                P_np = np.array(P_ctrl)
+                save_checkpoint_npz(
+                    checkpoint_run.run_dir,
+                    step_idx,
+                    P_np,
+                    np.array(r),
+                    float(L),
+                )
+                X_np_ckpt = np.einsum("mn,cnd->cmd", B, P_np)
+                if checkpoint_csv:
+                    pairs_np_ckpt = build_pairs_spatial_hash(
+                        X_np_ckpt,
+                        r_max=float(np.max(r) + delta),
+                        cell=pair_cell_value,
+                    )
+                    pair_i_jax = jnp.asarray(pairs_np_ckpt[0])
+                    pair_k_jax = jnp.asarray(pairs_np_ckpt[1])
+                    pair_j_jax = jnp.asarray(pairs_np_ckpt[2])
+                    pair_l_jax = jnp.asarray(pairs_np_ckpt[3])
+                    pairs_j_ckpt: PairsJax = (
+                        pair_i_jax,
+                        pair_k_jax,
+                        pair_j_jax,
+                        pair_l_jax,
+                    )
+                    Li, Lc, Ls, Lf = loss_terms_fn(P_ctrl, pairs_j_ckpt, r_j)
+                    loss_total = float(Li) + float(Lc) + float(Ls) + float(Lf)
+                    elapsed_total = time.perf_counter() - start_time
+                    elapsed_step = time.perf_counter() - step_start
+                    row = {
+                        "step": step_idx,
+                        "loss": loss_total,
+                        "loss_inside": float(Li),
+                        "loss_curv": float(Lc),
+                        "loss_sep": float(Ls),
+                        "loss_fill": float(Lf),
+                        "pairs": int(pairs_np_ckpt[0].shape[0]),
+                        "lr": float(schedule(step_idx)),
+                        "weight_decay": float(weight_decay),
+                        "elapsed_s": float(elapsed_total),
+                        "step_s": float(elapsed_step),
+                    }
+                    append_metrics_csv(
+                        checkpoint_run.csv_path,
+                        CHECKPOINT_CSV_FIELDS,
+                        row,
+                    )
+                if checkpoint_svgs:
+                    save_checkpoint_svg(checkpoint_run.run_dir, step_idx, X_np_ckpt)
 
         if (t % log_every) == 0 or t == steps - 1:
             last_L = float(L)
