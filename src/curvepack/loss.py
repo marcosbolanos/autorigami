@@ -85,8 +85,8 @@ def fill_reward(
     X: Float[Array, "C M 2"],
     Y: Float[Array, "Q 2"],
     r_fill: float,
-    tau: float = 1.0,
-    w: float = 1.0,
+    tau: float | Array = 1.0,
+    w: float | Array = 1.0,
 ) -> Float[Array, ""]:
     """
     Maximize area coverage: points in Y should be within r_fill of some curve.

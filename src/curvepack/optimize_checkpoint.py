@@ -18,6 +18,8 @@ CHECKPOINT_CSV_FIELDS = [
     "loss_curv",
     "loss_sep",
     "loss_fill",
+    "tau_fill",
+    "w_fill",
     "pairs",
     "lr",
     "weight_decay",
@@ -25,11 +27,35 @@ CHECKPOINT_CSV_FIELDS = [
     "step_s",
 ]
 
+GRADIENTS_DEBUG_FIELDS = [
+    "step",
+    "loss",
+    "loss_inside",
+    "loss_curv",
+    "loss_sep",
+    "loss_fill",
+    "tau_fill",
+    "w_fill",
+    "pairs",
+    "lr",
+    "elapsed_s",
+    "step_s",
+    "grad_inside_mean",
+    "grad_inside_max",
+    "grad_curv_mean",
+    "grad_curv_max",
+    "grad_sep_mean",
+    "grad_sep_max",
+    "grad_fill_mean",
+    "grad_fill_max",
+]
+
 
 @dataclass(frozen=True)
 class CheckpointRun:
     run_dir: Path
     csv_path: Path
+    gradients_csv_path: Path
 
 
 def init_checkpoint_run(base_dir: Path, metadata: dict[str, Any]) -> CheckpointRun:
@@ -54,7 +80,11 @@ def init_checkpoint_run(base_dir: Path, metadata: dict[str, Any]) -> CheckpointR
     )
     print(f"checkpoint run dir={run_dir}")
 
-    return CheckpointRun(run_dir=run_dir, csv_path=run_dir / "metrics.csv")
+    return CheckpointRun(
+        run_dir=run_dir,
+        csv_path=run_dir / "metrics.csv",
+        gradients_csv_path=run_dir / "gradients_debug.csv",
+    )
 
 
 def save_checkpoint_npz(
@@ -88,10 +118,24 @@ def append_metrics_csv(
         writer.writerow(row)
 
 
-def save_checkpoint_svg(run_dir: Path, step_idx: int, curves: np.ndarray) -> None:
+def save_checkpoint_svg(
+    run_dir: Path,
+    step_idx: int,
+    curves: np.ndarray,
+    *,
+    viewbox: tuple[float, float, float, float] | None = None,
+    canvas_size: tuple[float, float] | tuple[str, str] | None = None,
+    stroke_width: float | str = 2.0,
+) -> None:
     svg_path = run_dir / f"step_{step_idx:06d}.svg"
     start_svg = time.perf_counter()
-    export_curves_svg(str(svg_path), curves)
+    export_curves_svg(
+        str(svg_path),
+        curves,
+        viewbox=viewbox,
+        canvas_size=canvas_size,
+        stroke_width=stroke_width,
+    )
     svg_elapsed = time.perf_counter() - start_svg
     print(
         f"checkpoint svg saved step={step_idx} path={svg_path} time={svg_elapsed:.3f}s"

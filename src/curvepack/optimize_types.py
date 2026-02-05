@@ -29,4 +29,6 @@ PairsJax: TypeAlias = tuple[
     Int[jax.Array, "P"],
 ]
 JaxScalar: TypeAlias = Float[jax.Array, ""]
-LossFn: TypeAlias = Callable[[JaxControlPoints, PairsJax, JaxRadii], JaxScalar]
+LossFn: TypeAlias = Callable[
+    [JaxControlPoints, PairsJax, JaxRadii, JaxScalar, JaxScalar], JaxScalar
+]

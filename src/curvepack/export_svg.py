@@ -45,9 +45,10 @@ def export_curves_svg(
     out_path: str,
     curves: Float[np.ndarray, "C M 2"],
     stroke: str = "#000000",
-    stroke_width: float = 2.0,
+    stroke_width: float | str = 2.0,
     fill: str = "none",
     viewbox: tuple[float, float, float, float] | None = None,
+    canvas_size: tuple[float, float] | tuple[str, str] | None = None,
 ) -> None:
     """
     curves: (C,M,2) sampled points per curve in world coords
@@ -67,7 +68,10 @@ def export_curves_svg(
             float((maxy - miny) + 2 * pad),
         )
 
-    dwg = svgwrite.Drawing(out_path, profile="tiny")
+    if canvas_size is None:
+        dwg = svgwrite.Drawing(out_path, profile="tiny")
+    else:
+        dwg = svgwrite.Drawing(out_path, profile="tiny", size=canvas_size)
     dwg.viewbox(*viewbox)  # type: ignore[reportArgumentType]
 
     for i in range(C):
