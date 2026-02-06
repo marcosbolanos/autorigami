@@ -5,7 +5,7 @@ from src.curvepack.loss import (
     inside_loss,
     curvature_loss,
     separation_loss,
-    fill_reward,
+    fill_loss,
 )
 
 
@@ -76,16 +76,16 @@ def test_separation_loss_sanity_and_distance() -> None:
     assert float(loss_far) < float(loss_near)
 
 
-def test_fill_reward_sanity_and_distance() -> None:
+def test_fill_loss_sanity_and_distance() -> None:
     X_near = jnp.array([[[0.0, 0.0], [2.0, 0.0]]], dtype=jnp.float32)
     X_far = jnp.array([[[0.0, 2.0], [2.0, 2.0]]], dtype=jnp.float32)
     Y = jnp.array([[0.5, 0.0], [1.5, 0.0]], dtype=jnp.float32)
 
-    loss_near = fill_reward(X_near, Y, r_fill=0.5, tau=0.5)
-    loss_far = fill_reward(X_far, Y, r_fill=0.5, tau=0.5)
+    loss_near = fill_loss(X_near, Y, r_fill=0.5, tau=0.5)
+    loss_far = fill_loss(X_far, Y, r_fill=0.5, tau=0.5)
 
     assert np.isfinite(float(loss_near))
     assert np.isfinite(float(loss_far))
-    assert float(loss_near) <= 0.0
-    assert float(loss_far) <= 0.0
+    assert float(loss_near) >= 0.0
+    assert float(loss_far) >= 0.0
     assert float(loss_near) < float(loss_far)

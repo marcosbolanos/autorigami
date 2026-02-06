@@ -5,14 +5,16 @@ from typing import TypeAlias
 import jax
 import numpy as np
 from beartype.typing import Callable
-from jaxtyping import Float, Int
+from jaxtyping import Bool, Float, Int
 
 NpControlPoints: TypeAlias = Float[np.ndarray, "C n_ctrl 2"]
 NpBasisMatrix: TypeAlias = Float[np.ndarray, "M n_ctrl"]
 NpSdfGrid: TypeAlias = Float[np.ndarray, "H W"]
+NpMask: TypeAlias = Bool[np.ndarray, "H W"]
 NpOrigin: TypeAlias = Float[np.ndarray, "2"]
 NpSamplePoints: TypeAlias = Float[np.ndarray, "Q 2"]
 NpCurveSamples: TypeAlias = Float[np.ndarray, "C M 2"]
+NpPolygon: TypeAlias = Float[np.ndarray, "N 2"]
 NpRadii: TypeAlias = Float[np.ndarray, "C"]
 PairsNp: TypeAlias = tuple[
     Int[np.ndarray, "P"],

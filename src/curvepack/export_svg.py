@@ -49,15 +49,24 @@ def export_curves_svg(
     fill: str = "none",
     viewbox: tuple[float, float, float, float] | None = None,
     canvas_size: tuple[float, float] | tuple[str, str] | None = None,
+    reference_shape: Float[np.ndarray, "N 2"] | None = None,
+    reference_stroke: str = "#777777",
+    reference_stroke_width: float | str = 1.0,
+    reference_fill: str = "none",
+    reference_opacity: float = 0.5,
+    reference_dasharray: str | None = "4,4",
 ) -> None:
     """
     curves: (C,M,2) sampled points per curve in world coords
+    reference_shape: (N,2) optional outline to draw for context
     """
     C, M, _ = curves.shape
 
     # Determine viewBox from data if not provided
     if viewbox is None:
         allp = curves.reshape(-1, 2)
+        if reference_shape is not None:
+            allp = np.vstack([allp, reference_shape])
         minx, miny = allp.min(axis=0)
         maxx, maxy = allp.max(axis=0)
         pad = 10.0
@@ -72,7 +81,27 @@ def export_curves_svg(
         dwg = svgwrite.Drawing(out_path, profile="tiny")
     else:
         dwg = svgwrite.Drawing(out_path, profile="tiny", size=canvas_size)
-    dwg.viewbox(*viewbox)  # type: ignore[reportArgumentType]
+    viewbox_str = f"{viewbox[0]} {viewbox[1]} {viewbox[2]} {viewbox[3]}"
+    dwg.attribs["viewBox"] = viewbox_str
+
+    def to_point_list(points: np.ndarray) -> list[tuple[float, float]]:
+        return [(float(p[0]), float(p[1])) for p in points]
+
+    if reference_shape is not None:
+        ref_kwargs: dict[str, object] = {
+            "stroke": reference_stroke,
+            "fill": reference_fill,
+            "stroke_width": reference_stroke_width,
+            "opacity": reference_opacity,
+        }
+        if reference_dasharray is not None:
+            ref_kwargs["stroke_dasharray"] = reference_dasharray
+        dwg.add(
+            dwg.polygon(
+                points=to_point_list(reference_shape),
+                **ref_kwargs,
+            )
+        )
 
     for i in range(C):
         pts = curves[i]
@@ -80,7 +109,7 @@ def export_curves_svg(
         if M < 6:
             dwg.add(
                 dwg.polyline(
-                    points=[tuple(p) for p in pts],
+                    points=to_point_list(pts),
                     stroke=stroke,
                     fill=fill,
                     stroke_width=stroke_width,

@@ -5,7 +5,7 @@ from beartype import beartype
 from beartype.typing import Callable
 from jaxtyping import jaxtyped
 
-from .loss import inside_loss, curvature_loss, separation_loss, fill_reward
+from .loss import inside_loss, curvature_loss, separation_loss, fill_loss
 from .optimize_types import (
     JaxControlPoints,
     JaxRadii,
@@ -53,7 +53,7 @@ def make_loss_fn(
         Li = inside_loss(X, sdf_j, origin_j, h, r, w=w_inside)
         Lc = curvature_loss(X, Rmin, w=w_curv)
         Ls = separation_loss(X, r, pairs, delta=delta, w=w_sep)
-        Lf = fill_reward(X, Y_j, r_fill=r_fill, tau=tau_fill_t, w=w_fill_t)
+        Lf = fill_loss(X, Y_j, r_fill=r_fill, tau=tau_fill_t, w=w_fill_t)
 
         return Li + Lc + Ls + Lf
 
@@ -92,7 +92,7 @@ def make_loss_terms_fn(
         Li = inside_loss(X, sdf_j, origin_j, h, r, w=w_inside)
         Lc = curvature_loss(X, Rmin, w=w_curv)
         Ls = separation_loss(X, r, pairs, delta=delta, w=w_sep)
-        Lf = fill_reward(X, Y_j, r_fill=r_fill, tau=tau_fill_t, w=w_fill_t)
+        Lf = fill_loss(X, Y_j, r_fill=r_fill, tau=tau_fill_t, w=w_fill_t)
         return Li, Lc, Ls, Lf
 
     return loss_terms

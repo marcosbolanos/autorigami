@@ -12,6 +12,7 @@ dependencies = [
   "optax",
   "svgpathtools",
   "shapely",
+  "tqdm",
   "Pillow",
   "svgwrite",
   "jaxtyping>=0.3.7",

@@ -81,7 +81,7 @@ def separation_loss(
 
 
 @jaxtyped(typechecker=beartype)
-def fill_reward(
+def fill_loss(
     X: Float[Array, "C M 2"],
     Y: Float[Array, "Q 2"],
     r_fill: float,
@@ -89,7 +89,7 @@ def fill_reward(
     w: float | Array = 1.0,
 ) -> Float[Array, ""]:
     """
-    Maximize area coverage: points in Y should be within r_fill of some curve.
+    Penalty for missing coverage: points in Y should be within r_fill of some curve.
     X: (C,M,2) sampled points along curves
     Y: (Q,2) domain points inside polygon
     r_fill: scalar (typically same as tube radius)
@@ -118,5 +118,30 @@ def fill_reward(
 
     # Smooth occupancy
     occ = jax.nn.sigmoid((r_fill - d_soft) / tau)
-    # Reward = mean occupancy; we return negative to minimize
-    return -w * jnp.mean(occ)
+    # Penalty = 1 - mean occupancy
+    return w * (1.0 - jnp.mean(occ))
+
+
+@jaxtyped(typechecker=beartype)
+def fill_fullness(
+    X: Float[Array, "C M 2"],
+    Y: Float[Array, "Q 2"],
+    r_fill: float,
+) -> Float[Array, ""]:
+    """
+    Fraction of Y points within r_fill of any curve segment.
+    X: (C,M,2) sampled points along curves
+    Y: (Q,2) domain points inside polygon
+    r_fill: scalar radius in world units
+    """
+    A = X[:, :-1, :]
+    B = X[:, 1:, :]
+
+    def dist2_to_all_segments(y: Float[Array, "2"]) -> Float[Array, "C S"]:
+        d2 = point_segment_dist2(y[None, None, :], A, B)
+        return d2.reshape(-1)
+
+    d2_all = jax.vmap(dist2_to_all_segments)(Y)
+    d2_min = jnp.min(d2_all, axis=1)
+    r2 = r_fill * r_fill
+    return jnp.mean(d2_min <= r2)

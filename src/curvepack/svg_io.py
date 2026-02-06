@@ -28,6 +28,7 @@ def load_single_path_polygon(
         p = Path(*p)  # copy
         p.append(p[0].reversed())  # crude fallback; better: require closed
         # In practice, you should fix the SVG; for now, allow but warn.
+        print("WARNING: the provided svg shape isn't fully closed")
 
     # Flatten path to polyline with specified tolerance.
     # svgpathtools provides "poly" sampling via continuous discretization.

@@ -14,6 +14,7 @@ def build_pairs_spatial_hash(
     r_max: float,
     cell: float,
     exclude_adj: int = 2,
+    self_arc_min: float | None = None,
     max_pairs: int = 200000,
 ) -> PairsNp:
     """
@@ -22,6 +23,7 @@ def build_pairs_spatial_hash(
     r_max: max tube radius + clearance
     cell: grid cell size (recommend ~ r_max)
     exclude_adj: for same curve, exclude segment pairs with |k-l| <= exclude_adj
+    self_arc_min: for same curve, exclude pairs with arc-length < self_arc_min
     Returns (pair_i, pair_k, pair_j, pair_l) int32 arrays.
     """
     C, M, _ = X.shape
@@ -30,6 +32,17 @@ def build_pairs_spatial_hash(
     A = X[:, :-1, :]
     B = X[:, 1:, :]
     mid = 0.5 * (A + B)
+
+    self_arc_min_value = float(self_arc_min) if self_arc_min is not None else None
+    s_mid: np.ndarray | None = None
+    if self_arc_min_value is not None and self_arc_min_value > 0:
+        seg = B - A
+        seg_len = np.linalg.norm(seg, axis=-1)
+        s_cum = np.cumsum(seg_len, axis=1)
+        s_start = np.concatenate(
+            [np.zeros((C, 1), dtype=seg_len.dtype), s_cum[:, :-1]], axis=1
+        )
+        s_mid = s_start + 0.5 * seg_len
 
     if debug.is_verbose():
         finite_mid = bool(np.isfinite(mid).all())
@@ -112,8 +125,12 @@ def build_pairs_spatial_hash(
             for j, l in cand:
                 if (j < i) or (j == i and l <= k):
                     continue
-                if i == j and abs(k - l) <= exclude_adj:
-                    continue
+                if i == j:
+                    if abs(k - l) <= exclude_adj:
+                        continue
+                    if s_mid is not None and self_arc_min_value is not None:
+                        if abs(float(s_mid[i, k] - s_mid[i, l])) < self_arc_min_value:
+                            continue
                 add_pair(i, k, j, l)
                 if len(pair_i) >= max_pairs:
                     break

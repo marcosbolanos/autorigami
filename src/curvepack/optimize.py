@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import time
-from typing import cast
+from typing import Callable, Mapping, cast
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 import optax  # type: ignore[reportMissingTypeStubs]
 from beartype import beartype
-from beartype.typing import Callable
 from jaxtyping import jaxtyped
 
 from .optimize_checkpoint import (
@@ -18,9 +17,16 @@ from .optimize_checkpoint import (
     append_metrics_csv,
     init_checkpoint_run,
     save_checkpoint_npz,
+    save_checkpoint_rasters,
     save_checkpoint_svg,
 )
-from .loss import inside_loss, curvature_loss, separation_loss, fill_reward
+from .loss import (
+    fill_fullness,
+    fill_loss,
+    inside_loss,
+    curvature_loss,
+    separation_loss,
+)
 from . import optimize_init
 from .optimize_loss import make_loss_fn, make_loss_terms_fn
 from .optimize_pairs import build_pairs_spatial_hash
@@ -31,6 +37,8 @@ from .optimize_types import (
     NpBasisMatrix,
     NpControlPoints,
     NpOrigin,
+    NpMask,
+    NpPolygon,
     NpRadii,
     NpSamplePoints,
     NpSdfGrid,
@@ -72,7 +80,9 @@ def optimize_curves(
     w_curv: float = 1.0,
     w_sep: float = 5.0,
     w_fill: float = 2.0,
+    fill_schedule: bool = True,
     pair_cell: float | None = None,
+    sep_self_arc: float | None = None,
     seed: int = 0,
     log_every: int = 50,
     checkpoint_every: int | None = 500,
@@ -83,6 +93,9 @@ def optimize_curves(
     checkpoint_stroke_width: float | str = "1pt",
     checkpoint_scale_nm_per_unit: float | None = None,
     checkpoint_scale_nm_per_cm: float | None = None,
+    checkpoint_shape: NpPolygon | None = None,
+    metadata_extra: Mapping[str, object] | None = None,
+    checkpoint_mask: NpMask | None = None,
 ) -> tuple[NpControlPoints, float]:
     """
     Optimize control points P (C,n_ctrl,2).
@@ -92,6 +105,10 @@ def optimize_curves(
     pair_cell_value = (
         float(np.max(r) + delta) if pair_cell is None else float(pair_cell)
     )
+    if sep_self_arc is None:
+        sep_self_arc_value = 4.0 * float(np.max(r) + delta)
+    else:
+        sep_self_arc_value = float(sep_self_arc)
 
     loss_fn = make_loss_fn(
         B,
@@ -121,26 +138,32 @@ def optimize_curves(
     )
     grad_fn = jax.grad(loss_fn)
 
-    fill_ramp_steps = max(1, int(0.3 * steps))
-    tau_fill_start = tau_fill * 3.0
+    if fill_schedule:
+        fill_ramp_steps = max(1, int(0.3 * steps))
+        tau_fill_start = tau_fill * 3.0
+    else:
+        fill_ramp_steps = 1
+        tau_fill_start = tau_fill
     if debug.is_verbose():
         debug.log(
             "fill_schedule "
-            f"ramp_steps={fill_ramp_steps} tau_start={tau_fill_start:.6g} "
-            f"tau_end={tau_fill:.6g} w_fill_target={w_fill:.6g}"
+            f"enabled={fill_schedule} ramp_steps={fill_ramp_steps} "
+            f"tau_start={tau_fill_start:.6g} tau_end={tau_fill:.6g} "
+            f"w_fill_target={w_fill:.6g}"
         )
 
     warmup_steps = max(200, int(0.03 * steps))
     warmup_steps = min(warmup_steps, max(1, steps - 1))
     decay_steps = max(1, steps - warmup_steps)
     end_lr = lr * 0.02
-    schedule = optax.warmup_cosine_decay_schedule(
-        init_value=0.0,
-        peak_value=lr,
-        warmup_steps=warmup_steps,
-        decay_steps=decay_steps,
-        end_value=end_lr,
-    )
+    schedule = optax.constant_schedule(lr)
+    # schedule = optax.warmup_cosine_decay_schedule(
+    #     init_value=0.0,
+    #     peak_value=lr,
+    #     warmup_steps=warmup_steps,
+    #     decay_steps=decay_steps,
+    #     end_value=end_lr,
+    # )
     if debug.is_verbose():
         debug.log(
             "lr_schedule "
@@ -229,7 +252,7 @@ def optimize_curves(
             return separation_loss(X, r_j, pairs_j_ckpt, delta=delta, w=w_sep)
 
         def term_fill(X: JaxControlPoints) -> JaxScalar:
-            return fill_reward(X, Y_j, r_fill=r_fill, tau=tau_fill_j, w=w_fill_j)
+            return fill_loss(X, Y_j, r_fill=r_fill, tau=tau_fill_j, w=w_fill_j)
 
         Li_dbg = term_inside(X_j_ckpt)
         Lc_dbg = term_curv(X_j_ckpt)
@@ -241,6 +264,14 @@ def optimize_curves(
         gs_mean, gs_max = grad_stats(term_sep, X_j_ckpt)
         gf_mean, gf_max = grad_stats(term_fill, X_j_ckpt)
 
+        fill_soft_dbg = (
+            float(-Lf_dbg) / float(w_fill_t) if float(w_fill_t) > 0 else float("nan")
+        )
+        fill_hard = float(fill_fullness(X_j_ckpt, Y_j, r_fill=r_fill))
+        fill_hard_clearance = float(
+            fill_fullness(X_j_ckpt, Y_j, r_fill=r_fill + 0.5 * delta)
+        )
+
         row_dbg = {
             "step": step_idx,
             "loss": float(Li_dbg + Lc_dbg + Ls_dbg + Lf_dbg),
@@ -248,6 +279,7 @@ def optimize_curves(
             "loss_curv": float(Lc_dbg),
             "loss_sep": float(Ls_dbg),
             "loss_fill": float(Lf_dbg),
+            "fill_soft": fill_soft_dbg,
             "tau_fill": float(tau_fill_t),
             "w_fill": float(w_fill_t),
             "pairs": int(pairs_np_ckpt[0].shape[0]),
@@ -262,6 +294,8 @@ def optimize_curves(
             "grad_sep_max": gs_max,
             "grad_fill_mean": gf_mean,
             "grad_fill_max": gf_max,
+            "fill_hard": fill_hard,
+            "fill_hard_clearance": fill_hard_clearance,
         }
         append_metrics_csv(
             checkpoint_run.gradients_csv_path,
@@ -278,7 +312,7 @@ def optimize_curves(
     if not (checkpoint_csv or checkpoint_svgs or save_checkpoints):
         checkpoint_run = None
     else:
-        metadata = {
+        metadata: dict[str, object] = {
             "seed": int(seed),
             "steps": int(steps),
             "lr": float(lr),
@@ -291,7 +325,9 @@ def optimize_curves(
             "w_curv": float(w_curv),
             "w_sep": float(w_sep),
             "w_fill": float(w_fill),
+            "fill_schedule": bool(fill_schedule),
             "pair_cell": float(pair_cell_value),
+            "sep_self_arc": float(sep_self_arc_value),
             "warmup_steps": int(warmup_steps),
             "decay_steps": int(decay_steps),
             "end_lr": float(end_lr),
@@ -333,8 +369,17 @@ def optimize_curves(
                 "mean": float(np.mean(r)),
             },
         }
+        if metadata_extra:
+            metadata["run_params"] = cast(object, dict(metadata_extra))
         checkpoint_run = init_checkpoint_run(
             PROJECT_ROOT / "data" / "checkpoints", metadata
+        )
+        save_checkpoint_rasters(
+            checkpoint_run.run_dir,
+            mask=checkpoint_mask,
+            sdf=sdf,
+            origin=origin,
+            h=h,
         )
 
     last_L = float("nan")
@@ -351,6 +396,7 @@ def optimize_curves(
             X_np0,
             r_max=float(np.max(r) + delta),
             cell=pair_cell_value,
+            self_arc_min=sep_self_arc_value,
         )
         pair_i_jax = jnp.asarray(pairs_np0[0])
         pair_k_jax = jnp.asarray(pairs_np0[1])
@@ -369,6 +415,11 @@ def optimize_curves(
             )
             loss_total = float(Li0) + float(Lc0) + float(Ls0) + float(Lf0)
             loss0 = loss_total
+            fill_soft0 = (
+                1.0 - (float(Lf0) / float(w_fill_t))
+                if float(w_fill_t) > 0
+                else float("nan")
+            )
             elapsed_total = time.perf_counter() - start_time
             elapsed_step = time.perf_counter() - step_start
             row = {
@@ -378,11 +429,13 @@ def optimize_curves(
                 "loss_curv": float(Lc0),
                 "loss_sep": float(Ls0),
                 "loss_fill": float(Lf0),
+                "fill_soft": fill_soft0,
                 "tau_fill": float(tau_fill_t),
                 "w_fill": float(w_fill_t),
                 "pairs": int(pairs_np0[0].shape[0]),
                 "lr": float(schedule(step_idx)),
                 "weight_decay": float(weight_decay),
+                "update_norm": 0.0,
                 "elapsed_s": float(elapsed_total),
                 "step_s": float(elapsed_step),
             }
@@ -419,6 +472,7 @@ def optimize_curves(
                 viewbox=checkpoint_viewbox,
                 canvas_size=checkpoint_canvas_size,
                 stroke_width=checkpoint_stroke_width,
+                reference_shape=checkpoint_shape,
             )
 
     for t in range(steps):
@@ -446,6 +500,7 @@ def optimize_curves(
             X_np,
             r_max=float(np.max(r) + delta),
             cell=pair_cell_value,
+            self_arc_min=sep_self_arc_value,
         )
         pair_i_jax = jnp.asarray(pairs_np[0])
         pair_k_jax = jnp.asarray(pairs_np[1])
@@ -481,13 +536,16 @@ def optimize_curves(
                     f"{t}: inside={li_val} curv={lc_val} sep={ls_val} fill={lf_val}"
                 )
 
+        P_prev = P_ctrl
         P_ctrl, opt_state, L = step(
             P_ctrl, opt_state, pairs_j, r_j, w_fill_j, tau_fill_j
         )
+        update_norm = float(jnp.linalg.norm(P_ctrl - P_prev))
 
         step_idx = t + 1
         if checkpoint_run is not None and checkpoint_csv:
             loss_total = li_val + lc_val + ls_val + lf_val
+            fill_soft = 1.0 - (lf_val / w_fill_t) if w_fill_t > 0 else float("nan")
             elapsed_total = time.perf_counter() - start_time
             elapsed_step = time.perf_counter() - step_start
             row = {
@@ -497,11 +555,13 @@ def optimize_curves(
                 "loss_curv": lc_val,
                 "loss_sep": ls_val,
                 "loss_fill": lf_val,
+                "fill_soft": fill_soft,
                 "tau_fill": float(tau_fill_t),
                 "w_fill": float(w_fill_t),
                 "pairs": int(pairs_np[0].shape[0]),
                 "lr": float(schedule(step_idx)),
                 "weight_decay": float(weight_decay),
+                "update_norm": update_norm,
                 "elapsed_s": float(elapsed_total),
                 "step_s": float(elapsed_step),
             }
@@ -519,6 +579,7 @@ def optimize_curves(
                 X_np_ckpt,
                 r_max=float(np.max(r) + delta),
                 cell=pair_cell_value,
+                self_arc_min=sep_self_arc_value,
             )
             write_gradients_debug(
                 step_idx,
@@ -546,11 +607,15 @@ def optimize_curves(
                     viewbox=checkpoint_viewbox,
                     canvas_size=checkpoint_canvas_size,
                     stroke_width=checkpoint_stroke_width,
+                    reference_shape=checkpoint_shape,
                 )
 
         if (t % log_every) == 0 or t == steps - 1:
             last_L = float(L)
-            print(f"step {t:5d}  loss={last_L:.6g}  pairs={pairs_np[0].shape[0]}")
+            print(
+                f"step {t:5d}  loss={last_L:.6g}  pairs={pairs_np[0].shape[0]} "
+                f"upd={update_norm:.6g}"
+            )
 
         # Optional: continuation on fill softness / weights (simple schedule)
         # (kept out for clarity; you can ramp w_fill and decrease tau_fill over time)

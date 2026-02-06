@@ -22,7 +22,7 @@ def plot_fill_schedule(
 
     ax_w = ax.twinx()
     ax_w.plot(steps, w_fill, label="w_fill", color="#ff7f0e", linewidth=2.0)
-    ax_w.set_ylabel("w_fill", color="#ff7f0e")
+    ax_w.set_ylabel("w_fill / fill_soft", color="#ff7f0e")
     ax_w.tick_params(axis="y", labelcolor="#ff7f0e")
 
     lines = ax.get_lines() + ax_w.get_lines()

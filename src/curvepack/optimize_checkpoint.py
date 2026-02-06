@@ -18,11 +18,13 @@ CHECKPOINT_CSV_FIELDS = [
     "loss_curv",
     "loss_sep",
     "loss_fill",
+    "fill_soft",
     "tau_fill",
     "w_fill",
     "pairs",
     "lr",
     "weight_decay",
+    "update_norm",
     "elapsed_s",
     "step_s",
 ]
@@ -34,6 +36,7 @@ GRADIENTS_DEBUG_FIELDS = [
     "loss_curv",
     "loss_sep",
     "loss_fill",
+    "fill_soft",
     "tau_fill",
     "w_fill",
     "pairs",
@@ -48,6 +51,8 @@ GRADIENTS_DEBUG_FIELDS = [
     "grad_sep_max",
     "grad_fill_mean",
     "grad_fill_max",
+    "fill_hard",
+    "fill_hard_clearance",
 ]
 
 
@@ -126,6 +131,7 @@ def save_checkpoint_svg(
     viewbox: tuple[float, float, float, float] | None = None,
     canvas_size: tuple[float, float] | tuple[str, str] | None = None,
     stroke_width: float | str = 2.0,
+    reference_shape: np.ndarray | None = None,
 ) -> None:
     svg_path = run_dir / f"step_{step_idx:06d}.svg"
     start_svg = time.perf_counter()
@@ -135,8 +141,29 @@ def save_checkpoint_svg(
         viewbox=viewbox,
         canvas_size=canvas_size,
         stroke_width=stroke_width,
+        reference_shape=reference_shape,
     )
     svg_elapsed = time.perf_counter() - start_svg
     print(
         f"checkpoint svg saved step={step_idx} path={svg_path} time={svg_elapsed:.3f}s"
     )
+
+
+def save_checkpoint_rasters(
+    run_dir: Path,
+    *,
+    mask: np.ndarray | None,
+    sdf: np.ndarray,
+    origin: np.ndarray,
+    h: float,
+) -> Path:
+    raster_path = run_dir / "rasters.npz"
+    data: dict[str, np.ndarray | float] = {
+        "sdf": sdf.astype(np.float32),
+        "origin": origin.astype(np.float32),
+        "h": float(h),
+    }
+    if mask is not None:
+        data["mask"] = mask.astype(np.uint8)
+    np.savez_compressed(raster_path, **data)
+    return raster_path
