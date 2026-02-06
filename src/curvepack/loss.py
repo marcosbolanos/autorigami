@@ -118,8 +118,8 @@ def fill_loss(
 
     # Smooth occupancy
     occ = jax.nn.sigmoid((r_fill - d_soft) / tau)
-    # Penalty = 1 - mean occupancy
-    return w * (1.0 - jnp.mean(occ))
+    # Penalty = (1 - mean occupancy)²
+    return w * jnp.square(1.0 - jnp.mean(occ))
 
 
 @jaxtyped(typechecker=beartype)
