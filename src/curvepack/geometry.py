@@ -132,3 +132,38 @@ def segseg_dist2(
     q = c + t[..., None] * v
     diff = p - q
     return jnp.sum(diff * diff, axis=-1)
+
+
+@jaxtyped(typechecker=beartype)
+def polyline_length(
+    x: Float[Array, "M 2"],
+    *,
+    closed: bool = False,
+    eps: float = 1e-12,
+) -> Float[Array, ""]:
+    """Polyline length in world units."""
+
+    seg = x[1:, :] - x[:-1, :]
+    seglen = jnp.linalg.norm(seg, axis=-1) + eps
+    length = jnp.sum(seglen)
+    if closed:
+        length = length + jnp.linalg.norm(x[0, :] - x[-1, :])
+    return length
+
+
+@jaxtyped(typechecker=beartype)
+def curves_length(
+    X: Float[Array, "C M 2"],
+    *,
+    closed: bool = False,
+    eps: float = 1e-12,
+) -> Float[Array, "C"]:
+    """Per-curve polyline length for X: (C, M, 2)."""
+
+    seg = X[:, 1:, :] - X[:, :-1, :]
+    seglen = jnp.linalg.norm(seg, axis=-1) + eps
+    length = jnp.sum(seglen, axis=-1)
+    if closed:
+        closing = jnp.linalg.norm(X[:, 0, :] - X[:, -1, :], axis=-1)
+        length = length + closing
+    return length

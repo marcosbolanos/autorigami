@@ -7,6 +7,8 @@ from src.curvepack.geometry import (
     discrete_curvature,
     point_segment_dist2,
     segseg_dist2,
+    polyline_length,
+    curves_length,
 )
 
 
@@ -71,3 +73,34 @@ def test_segseg_dist2_parallel_symmetry() -> None:
     d2_swap = segseg_dist2(c, d, a, b)
     assert np.isclose(float(d2), 4.0)
     assert np.isclose(float(d2), float(d2_swap))
+
+
+def test_polyline_length_open() -> None:
+    x = jnp.array([[0.0, 0.0], [3.0, 0.0], [3.0, 4.0]], dtype=jnp.float32)
+    L = polyline_length(x, closed=False)
+    assert np.isclose(float(L), 7.0)
+
+
+def test_polyline_length_closed() -> None:
+    x = jnp.array(
+        [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+        dtype=jnp.float32,
+    )
+    L_open = polyline_length(x, closed=False)
+    L_closed = polyline_length(x, closed=True)
+    assert np.isclose(float(L_open), 3.0)
+    assert np.isclose(float(L_closed), 4.0)
+
+
+def test_curves_length_batch() -> None:
+    X = jnp.array(
+        [
+            [[0.0, 0.0], [1.0, 0.0]],
+            [[0.0, 0.0], [0.0, 2.0]],
+        ],
+        dtype=jnp.float32,
+    )
+    lengths = curves_length(X, closed=False)
+    np.testing.assert_allclose(
+        np.array(lengths), np.array([1.0, 2.0], dtype=np.float32)
+    )

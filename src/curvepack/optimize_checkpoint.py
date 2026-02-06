@@ -99,13 +99,26 @@ def save_checkpoint_npz(
     r: np.ndarray,
     loss: float,
 ) -> Path:
+    return save_checkpoint_npz_arrays(run_dir, step_idx, loss=loss, P=P, r=r)
+
+
+def save_checkpoint_npz_arrays(
+    run_dir: Path,
+    step_idx: int,
+    *,
+    loss: float,
+    **arrays: np.ndarray,
+) -> Path:
     checkpoint_path = run_dir / f"step_{step_idx:06d}.npz"
+    if "allow_pickle" in arrays:
+        raise ValueError("save_checkpoint_npz_arrays: reserved key 'allow_pickle'")
+    arrays_any: dict[str, Any] = dict(arrays)
     np.savez_compressed(
         checkpoint_path,
-        step=step_idx,
-        loss=loss,
-        P=P,
-        r=r,
+        step=np.asarray(step_idx, dtype=np.int32),
+        loss=np.asarray(loss, dtype=np.float32),
+        allow_pickle=False,
+        **arrays_any,
     )
     return checkpoint_path
 
@@ -158,12 +171,24 @@ def save_checkpoint_rasters(
     h: float,
 ) -> Path:
     raster_path = run_dir / "rasters.npz"
-    data: dict[str, np.ndarray | float] = {
-        "sdf": sdf.astype(np.float32),
-        "origin": origin.astype(np.float32),
-        "h": float(h),
-    }
-    if mask is not None:
-        data["mask"] = mask.astype(np.uint8)
-    np.savez_compressed(raster_path, **data)
+    sdf_f = sdf.astype(np.float32)
+    origin_f = origin.astype(np.float32)
+    h_f = np.asarray(h, dtype=np.float32)
+    if mask is None:
+        np.savez_compressed(
+            raster_path,
+            sdf=sdf_f,
+            origin=origin_f,
+            h=h_f,
+            allow_pickle=False,
+        )
+    else:
+        np.savez_compressed(
+            raster_path,
+            sdf=sdf_f,
+            origin=origin_f,
+            h=h_f,
+            mask=mask.astype(np.uint8),
+            allow_pickle=False,
+        )
     return raster_path

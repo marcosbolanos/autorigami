@@ -13,11 +13,15 @@ from .curvepack.svg_io import (
 from .curvepack.sdf import polygon_to_mask, mask_to_sdf, sample_interior_points
 from .curvepack.bspline import make_basis_matrix
 from .curvepack.optimize import sample_init_control_points, optimize_curves
+from .curvepack.tangent_point.optimize_tangent_point import (
+    optimize_curves_tangent_point,
+)
 from .curvepack.export_svg import export_curves_svg
 from .utils import debug, debug_helpers
 
 
 class CliArgs(Protocol):
+    mode: str
     input: str
     output: str
     flat_tol: float
@@ -44,9 +48,16 @@ class CliArgs(Protocol):
     tau_fill: float
     no_fill_schedule: bool
     verbose: bool
+
+    tp_ignore_k: int
+    tp_closed: bool
+    tp_eps2: float
+    tp_len_final_mul: float
+    tp_len_rho: float
 
 
 class CliArgsDict(TypedDict):
+    mode: str
     input: str
     output: str
     flat_tol: float
@@ -73,6 +84,12 @@ class CliArgsDict(TypedDict):
     w_fill: float
     tau_fill: float
     no_fill_schedule: bool
+
+    tp_ignore_k: int
+    tp_closed: bool
+    tp_eps2: float
+    tp_len_final_mul: float
+    tp_len_rho: float
 
 
 class DerivedParams(TypedDict):
@@ -100,6 +117,13 @@ class RunParams(TypedDict):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--mode",
+        type=str,
+        default="legacy",
+        choices=["legacy", "tangent_point"],
+        help="Optimization mode (legacy tube losses vs tangent point energy)",
+    )
     ap.add_argument(
         "--input", required=True, help="Input SVG with one closed outline path"
     )
@@ -173,6 +197,37 @@ def main() -> None:
         help="Disable fill schedule (use constant w_fill/tau_fill)",
     )
 
+    # Tangent-point energy mode
+    ap.add_argument(
+        "--tp_ignore_k",
+        type=int,
+        default=2,
+        help="Tangent-point energy neighbor mask (ignore |i-j|<=k)",
+    )
+    ap.add_argument(
+        "--tp_closed",
+        action="store_true",
+        help="Treat each curve as closed for tangent-point energy + length",
+    )
+    ap.add_argument(
+        "--tp_eps2",
+        type=float,
+        default=1e-12,
+        help="Tangent-point energy distance regularizer (squared)",
+    )
+    ap.add_argument(
+        "--tp_len_final_mul",
+        type=float,
+        default=1.5,
+        help="Final length multiplier vs initial length (per curve)",
+    )
+    ap.add_argument(
+        "--tp_len_rho",
+        type=float,
+        default=1.0,
+        help="Augmented Lagrangian penalty rho for length constraint",
+    )
+
     args = cast(CliArgs, ap.parse_args())
     debug.set_verbose(args.verbose)
 
@@ -210,14 +265,18 @@ def main() -> None:
     V = load_single_path_polygon(args.input, flat_tol=flat_tol_units)
     debug_helpers.log_array("V", V)
 
-    # 2) Polygon -> mask -> SDF
+    # 2) Polygon -> mask
     mask, origin, h = polygon_to_mask(V, h=h_units, pad=mask_pad_units)
     debug.log(
         f"mask: shape={mask.shape} inside={int(mask.sum())} "
         f"origin=({origin[0]:.6g},{origin[1]:.6g}) h={h:.6g}"
     )
-    sdf = mask_to_sdf(mask, h=h)
-    debug_helpers.log_array("sdf", sdf)
+
+    sdf = None
+    if args.mode == "legacy":
+        # SDF only required for the legacy tube-based losses.
+        sdf = mask_to_sdf(mask, h=h)
+        debug_helpers.log_array("sdf", sdf)
 
     # 3) Interior samples Y
     Y = sample_interior_points(mask, origin, h, Q=args.Q, rng=rng)
@@ -296,40 +355,64 @@ def main() -> None:
         "derived": derived,
     }
 
-    P_opt, last_L = optimize_curves(
-        P0,
-        B,
-        sdf,
-        origin,
-        h,
-        Y,
-        r,
-        steps=args.steps,
-        lr=args.lr,
-        Rmin=Rmin_units,
-        delta=delta_units,
-        r_fill=tube_r_units,
-        tau_fill=tau_fill_units,
-        w_inside=args.w_inside,
-        w_curv=args.w_curv,
-        w_sep=args.w_sep,
-        w_fill=args.w_fill,
-        seed=args.seed,
-        fill_schedule=not args.no_fill_schedule,
-        checkpoint_every=args.checkpoint_every,
-        sep_self_arc=sep_self_arc_units,
-        checkpoint_scale_nm_per_unit=nm_per_unit,
-        checkpoint_scale_nm_per_cm=args.scale_nm_per_cm,
-        checkpoint_viewbox=viewbox,
-        checkpoint_canvas_size=canvas_size,
-        checkpoint_stroke_width="1pt",
-        checkpoint_shape=V,
-        metadata_extra=run_params,
-        checkpoint_mask=mask,
-    )
+    if args.mode == "legacy":
+        if sdf is None:
+            raise RuntimeError("internal error: sdf missing in legacy mode")
+        P_opt, last_L = optimize_curves(
+            P0,
+            B,
+            sdf,
+            origin,
+            h,
+            Y,
+            r,
+            steps=args.steps,
+            lr=args.lr,
+            Rmin=Rmin_units,
+            delta=delta_units,
+            r_fill=tube_r_units,
+            tau_fill=tau_fill_units,
+            w_inside=args.w_inside,
+            w_curv=args.w_curv,
+            w_sep=args.w_sep,
+            w_fill=args.w_fill,
+            seed=args.seed,
+            fill_schedule=not args.no_fill_schedule,
+            checkpoint_every=args.checkpoint_every,
+            sep_self_arc=sep_self_arc_units,
+            checkpoint_scale_nm_per_unit=nm_per_unit,
+            checkpoint_scale_nm_per_cm=args.scale_nm_per_cm,
+            checkpoint_viewbox=viewbox,
+            checkpoint_canvas_size=canvas_size,
+            checkpoint_stroke_width="1pt",
+            checkpoint_shape=V,
+            metadata_extra=run_params,
+            checkpoint_mask=mask,
+        )
 
-    # 7) Sample final curves and export SVG
-    X_opt = np.einsum("mn,cnd->cmd", B, P_opt)  # (C,M,2)
+        # 7) Sample final curves and export SVG
+        X_opt = np.einsum("mn,cnd->cmd", B, P_opt)  # (C,M,2)
+    else:
+        X0 = np.einsum("mn,cnd->cmd", B, P0)  # (C,M,2)
+        X_opt, last_L = optimize_curves_tangent_point(
+            X0,
+            steps=args.steps,
+            lr=args.lr,
+            closed=args.tp_closed,
+            ignore_k=args.tp_ignore_k,
+            eps2=args.tp_eps2,
+            len_final_mul=args.tp_len_final_mul,
+            len_rho=args.tp_len_rho,
+            seed=args.seed,
+            checkpoint_every=args.checkpoint_every,
+            checkpoint_scale_nm_per_unit=nm_per_unit,
+            checkpoint_scale_nm_per_cm=args.scale_nm_per_cm,
+            checkpoint_viewbox=viewbox,
+            checkpoint_canvas_size=canvas_size,
+            checkpoint_stroke_width="1pt",
+            checkpoint_shape=V,
+            metadata_extra=run_params,
+        )
 
     export_curves_svg(
         args.output,
@@ -339,7 +422,7 @@ def main() -> None:
         viewbox=viewbox,
         canvas_size=canvas_size,
     )
-    print(f"Saved: {args.output}  final_loss={last_L:.6g}")
+    print(f"Saved: {args.output}  mode={args.mode}  final_loss={last_L:.6g}")
 
 
 if __name__ == "__main__":

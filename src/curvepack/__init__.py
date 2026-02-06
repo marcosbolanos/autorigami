@@ -1,4 +1,4 @@
-from . import bspline, export_svg, geometry, loss, optimize, sdf, svg_io
+from . import bspline, export_svg, geometry, loss, optimize, sdf, svg_io, tangent_point
 
 __all__ = [
     "svg_io",
@@ -8,4 +8,5 @@ __all__ = [
     "loss",
     "optimize",
     "export_svg",
+    "tangent_point",
 ]

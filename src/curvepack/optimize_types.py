@@ -23,6 +23,7 @@ PairsNp: TypeAlias = tuple[
     Int[np.ndarray, "P"],
 ]
 JaxControlPoints: TypeAlias = Float[jax.Array, "C n_ctrl 2"]
+JaxCurveSamples: TypeAlias = Float[jax.Array, "C M 2"]
 JaxRadii: TypeAlias = Float[jax.Array, "C"]
 PairsJax: TypeAlias = tuple[
     Int[jax.Array, "P"],
