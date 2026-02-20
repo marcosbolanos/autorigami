@@ -72,11 +72,9 @@ def test_optimize_smoke_no_nans_and_finite_terms() -> None:
         Rmin,
         delta,
         r_fill,
-        tau_fill,
         w_inside,
         w_curv,
         w_sep,
-        w_fill,
     )
 
     pair_cell = float(np.max(r) + delta)
@@ -87,11 +85,18 @@ def test_optimize_smoke_no_nans_and_finite_terms() -> None:
             r_max=float(np.max(r) + delta),
             cell=pair_cell,
         )
-        pairs_j = tuple(jnp.asarray(arr) for arr in pairs_np)
+        pairs_j = (
+            jnp.asarray(pairs_np[0]),
+            jnp.asarray(pairs_np[1]),
+            jnp.asarray(pairs_np[2]),
+            jnp.asarray(pairs_np[3]),
+        )
         Li, Lc, Ls, Lf = loss_terms_fn(
             jnp.asarray(P),
             pairs_j,
             jnp.asarray(r),
+            jnp.asarray(w_fill),
+            jnp.asarray(tau_fill),
         )
         terms = np.array([Li, Lc, Ls, Lf], dtype=np.float32)
         assert np.isfinite(terms).all()
