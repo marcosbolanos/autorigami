@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/autorigami/__init__.py
+src/autorigami/mesh_io.py
+src/autorigami.egg-info/PKG-INFO
+src/autorigami.egg-info/SOURCES.txt
+src/autorigami.egg-info/dependency_links.txt
+src/autorigami.egg-info/requires.txt
+src/autorigami.egg-info/top_level.txt
+src/autorigami/shape_generation/__init__.py
+src/autorigami/shape_generation/generate_ellipsoid.py
+src/autorigami/spiral_generation/__init__.py
+src/autorigami/spiral_generation/simple_spiral.py
