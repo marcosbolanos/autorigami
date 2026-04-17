@@ -14,41 +14,8 @@ def _cubic_bezier_eval(control: np.ndarray, t: np.ndarray) -> np.ndarray:
     )
 
 
-def fit_natural_curve_arclength(points: np.ndarray, num_points: int | None = None) -> np.ndarray:
-    """Resample a polyline with uniform arc-length spacing."""
-    pts = np.asarray(points, dtype=float)
-    if pts.ndim != 2 or pts.shape[1] != 3:
-        raise ValueError("points must have shape (N, 3)")
-    if pts.shape[0] < 2:
-        raise ValueError("need at least 2 points")
-
-    n_out = int(num_points) if num_points is not None else int(pts.shape[0])
-    if n_out < 2:
-        raise ValueError("num_points must be >= 2")
-
-    seg = np.linalg.norm(np.diff(pts, axis=0), axis=1)
-    cumulative = np.concatenate(([0.0], np.cumsum(seg)))
-    total = float(cumulative[-1])
-    if total <= 0:
-        raise ValueError("degenerate curve")
-
-    targets = np.linspace(0.0, total, n_out)
-    out = np.empty((n_out, 3), dtype=float)
-
-    j = 0
-    for i, s in enumerate(targets):
-        while j < len(seg) - 1 and cumulative[j + 1] < s:
-            j += 1
-        s0 = cumulative[j]
-        s1 = cumulative[j + 1]
-        alpha = 0.0 if s1 <= s0 else (s - s0) / (s1 - s0)
-        out[i] = (1.0 - alpha) * pts[j] + alpha * pts[j + 1]
-
-    return out
-
-
-def natural_curve_to_cubic_bezier(points: np.ndarray) -> np.ndarray:
-    """Convert an arc-length parameterized curve to a fine cubic Bezier chain.
+def polyline_to_cubic_bezier_chain(points: np.ndarray) -> np.ndarray:
+    """Convert a polyline to a fine cubic Bezier chain.
 
     Uses one cubic segment per consecutive point pair (finest practical chain)
     with Hermite tangents converted to Bezier control points.

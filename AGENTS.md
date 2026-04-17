@@ -3,3 +3,4 @@
 - Don't make any dependency fallbacks. Just make sure necessary packages are
   installed. Also don't write any code that checks if packages are installed,
   just install them
+- Use `uv` as a package manager with `uv add` and use `uv run` to run commands

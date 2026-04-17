@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 import trimesh
 
 
@@ -75,14 +75,16 @@ def _nearest_nonlocal_distances_world(
     arclen = np.concatenate(([0.0], np.cumsum(seg)))
     min_arclen_gap_world = separation_nm / world_to_nm
 
-    tree = cKDTree(pts)
+    tree = KDTree(pts)
     k = min(512, pts.shape[0])
     dists, idxs = tree.query(pts, k=k)
+    dist_rows = np.asarray(dists, dtype=float)
+    idx_rows = np.asarray(idxs, dtype=np.int64)
 
     nearest: list[float] = []
     for i in range(pts.shape[0]):
         selected_distance: float | None = None
-        for dist, j in zip(np.atleast_1d(dists[i]), np.atleast_1d(idxs[i])):
+        for dist, j in zip(dist_rows[i], idx_rows[i]):
             idx = int(j)
             if idx == i:
                 continue
@@ -94,7 +96,9 @@ def _nearest_nonlocal_distances_world(
             break
         if selected_distance is None:
             fallback_dists, fallback_idxs = tree.query(pts[i], k=pts.shape[0])
-            for dist, j in zip(np.atleast_1d(fallback_dists), np.atleast_1d(fallback_idxs)):
+            fallback_dist_row = np.asarray(fallback_dists, dtype=float)
+            fallback_idx_row = np.asarray(fallback_idxs, dtype=np.int64)
+            for dist, j in zip(fallback_dist_row, fallback_idx_row):
                 idx = int(j)
                 if idx == i:
                     continue

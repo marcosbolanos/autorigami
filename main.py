@@ -15,8 +15,7 @@ from autorigami.mesh_io import (
 )
 from autorigami.metrics import compute_polyline_metrics
 from autorigami.parametrization import (
-    fit_natural_curve_arclength,
-    natural_curve_to_cubic_bezier,
+    polyline_to_cubic_bezier_chain,
     sample_cubic_bezier_chain,
 )
 from autorigami.spiral_generation import generate_spiral_on_surface, generate_tight_spiral_ode
@@ -61,17 +60,19 @@ def main() -> None:
     else:  # unsupported but we'll add room for other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")
 
-    natural_curve = fit_natural_curve_arclength(polyline, num_points=polyline.shape[0])
-    bezier_chain = natural_curve_to_cubic_bezier(natural_curve)
-    resampled_polyline = sample_cubic_bezier_chain(bezier_chain, num_samples=args.validation_samples)
+    bezier_chain = polyline_to_cubic_bezier_chain(polyline)
+    bezier_validation_samples = sample_cubic_bezier_chain(
+        bezier_chain,
+        num_samples=args.validation_samples,
+    )
     validation = validate_polyline_constraints(
-        points=resampled_polyline,
+        points=bezier_validation_samples,
         world_to_nm=args.world_to_nm,
         separation_nm=args.spacing_nm,
         min_curvature_radius_nm=args.min_curvature_radius_nm,
     )
     metrics = compute_polyline_metrics(
-        points=resampled_polyline,
+        points=bezier_validation_samples,
         mesh=mesh,
         axis_direction=axis_direction,
         axis_origin=axis_origin,
@@ -84,10 +85,10 @@ def main() -> None:
     shutil.copy2(input_path, source_mesh_copy_path)
     polyline_obj_raw_path = output_dir / "spiral_polyline_raw.obj"
     save_polyline_obj(polyline, polyline_obj_raw_path)
-    polyline_obj_resampled_path = output_dir / "spiral_polyline_resampled.obj"
-    save_polyline_obj(resampled_polyline, polyline_obj_resampled_path)
+    bezier_samples_obj_path = output_dir / "spiral_bezier_samples.obj"
+    save_polyline_obj(bezier_validation_samples, bezier_samples_obj_path)
     overlay_obj_path = output_dir / "spiral_overlay.obj"
-    save_overlay_obj(mesh=mesh, polyline=resampled_polyline, output_obj_path=overlay_obj_path)
+    save_overlay_obj(mesh=mesh, polyline=bezier_validation_samples, output_obj_path=overlay_obj_path)
 
     run_info = {
         "input_mesh": str(input_path),
@@ -101,10 +102,10 @@ def main() -> None:
         "resolved_axis_origin": axis_origin.tolist(),
         "num_polyline_points": int(polyline.shape[0]),
         "num_bezier_segments": int(bezier_chain.shape[0]),
-        "num_validation_samples": int(resampled_polyline.shape[0]),
+        "num_validation_samples": int(bezier_validation_samples.shape[0]),
         "source_mesh_copy": str(source_mesh_copy_path),
         "polyline_obj_raw": str(polyline_obj_raw_path),
-        "polyline_obj_resampled": str(polyline_obj_resampled_path),
+        "bezier_samples_obj": str(bezier_samples_obj_path),
         "overlay_obj": str(overlay_obj_path),
         "validation": {
             "separation_compliant": validation.separation.compliant_count,
@@ -156,7 +157,7 @@ def main() -> None:
     print(f"Output directory: {output_dir}")
     print(f"Source mesh copy: {source_mesh_copy_path}")
     print(f"Raw polyline OBJ: {polyline_obj_raw_path}")
-    print(f"Resampled polyline OBJ: {polyline_obj_resampled_path}")
+    print(f"Bezier sample OBJ: {bezier_samples_obj_path}")
     print(f"Overlay OBJ: {overlay_obj_path}")
     print(
         "Validation separation compliance: "

@@ -17,6 +17,14 @@ dist/
 *.egg-info
 src/autorigami.egg-info/
 .eggs/
+*.so
+*.pyd
+*.dylib
+_skbuild/
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+.cmake-build/
 
 # Tool caches
 .mypy_cache/

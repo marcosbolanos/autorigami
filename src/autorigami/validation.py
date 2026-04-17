@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 
 
 @dataclass(frozen=True)
@@ -70,19 +70,22 @@ def validate_polyline_constraints(
     seg = np.linalg.norm(np.diff(pts, axis=0), axis=1)
     arclen = np.concatenate(([0.0], np.cumsum(seg)))
 
-    tree = cKDTree(pts)
+    tree = KDTree(pts)
     k = min(64, pts.shape[0])
     dists, idxs = tree.query(pts, k=k)
+    dist_rows = np.asarray(dists, dtype=float)
+    idx_rows = np.asarray(idxs, dtype=np.int64)
 
     separation_ok = np.zeros(pts.shape[0], dtype=bool)
     for i in range(pts.shape[0]):
         ok = True
-        for d, j in zip(np.atleast_1d(dists[i]), np.atleast_1d(idxs[i])):
-            if i == int(j):
+        for d, j in zip(dist_rows[i], idx_rows[i]):
+            idx = int(j)
+            if i == idx:
                 continue
-            if abs(int(j) - i) <= neighbor_exclusion:
+            if abs(idx - i) <= neighbor_exclusion:
                 continue
-            if abs(float(arclen[int(j)] - arclen[i])) < sep_world:
+            if abs(float(arclen[idx] - arclen[i])) < sep_world:
                 continue
             if float(d) < sep_world:
                 ok = False
