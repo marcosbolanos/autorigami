@@ -10,11 +10,14 @@ class TightSpiralODEParams:
     world_to_nm: float = 20.0
     target_spacing_nm: float = 2.6
     min_curvature_radius_nm: float = 6.0
-    repulsion_strength: float = 2.0
+    repulsion_strength: float = 2.5
     repulsion_range_nm: float = 2.6
     repulsion_lag_points: int = 8
-    tangential_speed_nm: float = 10.0
-    step_size_nm: float = 0.6
+    tangential_speed_nm: float = 12.0
+    step_size_nm: float = 0.8
+    min_progress_fraction: float = 0.35
+    bottom_clearance_nm: float = 5.8
+    top_clearance_nm: float = 5.8
 
     def validate(self) -> None:
         if self.world_to_nm <= 0:
@@ -33,6 +36,12 @@ class TightSpiralODEParams:
             raise ValueError("tangential_speed_nm must be > 0")
         if self.step_size_nm <= 0:
             raise ValueError("step_size_nm must be > 0")
+        if self.min_progress_fraction <= 0 or self.min_progress_fraction > 1.0:
+            raise ValueError("min_progress_fraction must be in (0, 1]")
+        if self.bottom_clearance_nm < 0:
+            raise ValueError("bottom_clearance_nm must be >= 0")
+        if self.top_clearance_nm < 0:
+            raise ValueError("top_clearance_nm must be >= 0")
 
     @property
     def spacing_world(self) -> float:
@@ -53,3 +62,11 @@ class TightSpiralODEParams:
     @property
     def step_size_world(self) -> float:
         return self.step_size_nm / self.world_to_nm
+
+    @property
+    def top_clearance_world(self) -> float:
+        return self.top_clearance_nm / self.world_to_nm
+
+    @property
+    def bottom_clearance_world(self) -> float:
+        return self.bottom_clearance_nm / self.world_to_nm

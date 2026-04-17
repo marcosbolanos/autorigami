@@ -20,6 +20,9 @@ def generate_tight_spiral_ode(
     repulsion_lag_points: int = 8,
     tangential_speed_nm: float = 10.0,
     step_size_nm: float = 0.6,
+    min_progress_fraction: float = 0.35,
+    bottom_clearance_nm: float = 10.4,
+    top_clearance_nm: float = 5.2,
 ) -> np.ndarray:
     """Generate a tight, history-aware spiral using ODE-like progressive tracing."""
     if samples < 2:
@@ -39,7 +42,6 @@ def generate_tight_spiral_ode(
     vertices = np.asarray(mesh.vertices)
     axis_unit = axis / np.linalg.norm(axis)
     axis_pos = (vertices - origin) @ axis_unit
-    start_vertex = vertices[int(np.argmin(axis_pos))]
 
     params = TightSpiralODEParams(
         world_to_nm=world_to_nm,
@@ -50,7 +52,12 @@ def generate_tight_spiral_ode(
         repulsion_lag_points=repulsion_lag_points,
         tangential_speed_nm=tangential_speed_nm,
         step_size_nm=step_size_nm,
+        min_progress_fraction=min_progress_fraction,
+        bottom_clearance_nm=bottom_clearance_nm,
+        top_clearance_nm=top_clearance_nm,
     )
+    start_axis_pos = float(np.min(axis_pos)) + params.bottom_clearance_world
+    start_vertex = vertices[int(np.argmin(np.abs(axis_pos - start_axis_pos)))]
 
     return integrate_tight_spiral(
         mesh=mesh,

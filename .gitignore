@@ -1,2 +1,35 @@
-# outputs folder 
+# Project outputs
 outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info
+src/autorigami.egg-info/
+.eggs/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/

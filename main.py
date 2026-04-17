@@ -13,6 +13,7 @@ from autorigami.mesh_io import (
     save_polyline_obj,
     timestamped_output_dir,
 )
+from autorigami.metrics import compute_polyline_metrics
 from autorigami.parametrization import (
     fit_natural_curve_arclength,
     natural_curve_to_cubic_bezier,
@@ -53,6 +54,9 @@ def main() -> None:
             repulsion_lag_points=args.repulsion_lag_points,
             tangential_speed_nm=args.tangential_speed_nm,
             step_size_nm=args.step_size_nm,
+            min_progress_fraction=args.min_progress_fraction,
+            bottom_clearance_nm=args.bottom_clearance_nm,
+            top_clearance_nm=args.top_clearance_nm,
         )
     else:  # unsupported but we'll add room for other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")
@@ -65,6 +69,14 @@ def main() -> None:
         world_to_nm=args.world_to_nm,
         separation_nm=args.spacing_nm,
         min_curvature_radius_nm=args.min_curvature_radius_nm,
+    )
+    metrics = compute_polyline_metrics(
+        points=resampled_polyline,
+        mesh=mesh,
+        axis_direction=axis_direction,
+        axis_origin=axis_origin,
+        world_to_nm=args.world_to_nm,
+        separation_nm=args.spacing_nm,
     )
 
     output_dir = timestamped_output_dir(args.output_root)
@@ -100,6 +112,29 @@ def main() -> None:
             "curvature_compliant": validation.curvature.compliant_count,
             "curvature_total": validation.curvature.total_count,
         },
+        "metrics": {
+            "length_nm": metrics.length_nm,
+            "length_world": metrics.length_world,
+            "nearest_nonlocal_separation_nm": {
+                "count": metrics.nearest_nonlocal_separation.count,
+                "min": metrics.nearest_nonlocal_separation.min_nm,
+                "mean": metrics.nearest_nonlocal_separation.mean_nm,
+                "q25": metrics.nearest_nonlocal_separation.q25_nm,
+                "q75": metrics.nearest_nonlocal_separation.q75_nm,
+                "max": metrics.nearest_nonlocal_separation.max_nm,
+            },
+            "axis_coverage": {
+                "polyline_min_nm": metrics.axis_coverage.polyline_min_nm,
+                "polyline_max_nm": metrics.axis_coverage.polyline_max_nm,
+                "mesh_min_nm": metrics.axis_coverage.mesh_min_nm,
+                "mesh_max_nm": metrics.axis_coverage.mesh_max_nm,
+                "span_nm": metrics.axis_coverage.span_nm,
+                "mesh_span_nm": metrics.axis_coverage.mesh_span_nm,
+                "span_ratio": metrics.axis_coverage.span_ratio,
+                "start_ratio": metrics.axis_coverage.start_ratio,
+                "end_ratio": metrics.axis_coverage.end_ratio,
+            },
+        },
     }
     if args.generator == "ode":
         run_info["ode_params"] = {
@@ -111,6 +146,9 @@ def main() -> None:
             "repulsion_lag_points": args.repulsion_lag_points,
             "tangential_speed_nm": args.tangential_speed_nm,
             "step_size_nm": args.step_size_nm,
+            "min_progress_fraction": args.min_progress_fraction,
+            "bottom_clearance_nm": args.bottom_clearance_nm,
+            "top_clearance_nm": args.top_clearance_nm,
         }
     metadata_path = output_dir / "run_info.json"
     metadata_path.write_text(json.dumps(run_info, indent=2) + "\n", encoding="utf-8")
@@ -127,6 +165,21 @@ def main() -> None:
     print(
         "Validation curvature compliance: "
         f"{validation.curvature.compliant_count}/{validation.curvature.total_count}"
+    )
+    print(f"Polyline length: {metrics.length_nm:.2f} nm")
+    print(
+        "Nearest nonlocal separation (nm): "
+        f"min={metrics.nearest_nonlocal_separation.min_nm:.3f}, "
+        f"mean={metrics.nearest_nonlocal_separation.mean_nm:.3f}, "
+        f"q25={metrics.nearest_nonlocal_separation.q25_nm:.3f}, "
+        f"q75={metrics.nearest_nonlocal_separation.q75_nm:.3f}, "
+        f"max={metrics.nearest_nonlocal_separation.max_nm:.3f}"
+    )
+    print(
+        "Axis coverage: "
+        f"{metrics.axis_coverage.span_ratio * 100.0:.1f}% span, "
+        f"start={metrics.axis_coverage.start_ratio * 100.0:.1f}%, "
+        f"end={metrics.axis_coverage.end_ratio * 100.0:.1f}%"
     )
     print(f"Resolved axis vector: {axis_direction.tolist()} ({axis_source})")
     print(f"Resolved axis origin: {axis_origin.tolist()}")

@@ -50,7 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--repulsion-strength",
         type=float,
-        default=2.0,
+        default=2.5,
         help="Weight for self-repulsive potential in ODE generator.",
     )
     parser.add_argument(
@@ -68,14 +68,32 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tangential-speed-nm",
         type=float,
-        default=10.0,
+        default=12.0,
         help="Base tangential drive magnitude (nm per integration step-unit).",
     )
     parser.add_argument(
         "--step-size-nm",
         type=float,
-        default=0.6,
+        default=0.8,
         help="Integration step length in nanometers for ODE generator.",
+    )
+    parser.add_argument(
+        "--min-progress-fraction",
+        type=float,
+        default=0.35,
+        help="Minimum fraction of the nominal axial progress enforced at each ODE step.",
+    )
+    parser.add_argument(
+        "--bottom-clearance-nm",
+        type=float,
+        default=5.8,
+        help="Start the ODE spiral this far above the bottom pole along the chosen axis.",
+    )
+    parser.add_argument(
+        "--top-clearance-nm",
+        type=float,
+        default=5.8,
+        help="Stop the ODE spiral this far before the top pole along the chosen axis.",
     )
     parser.add_argument(
         "--axis",
