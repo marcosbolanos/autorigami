@@ -6,7 +6,7 @@ A library for algorithmic CAD of three-dimensional DNA nanostructures.
 
 Install with
 ```
-pip install .  
+pip install .
 ```
 
 ## Contributing

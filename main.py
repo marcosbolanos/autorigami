@@ -18,8 +18,8 @@ from autorigami.parametrization import (
     polyline_to_cubic_bezier_chain,
     sample_cubic_bezier_chain,
 )
+from autorigami._native import validate_polyline_constraints
 from autorigami.spiral_generation import generate_spiral_on_surface, generate_tight_spiral_ode
-from autorigami.validation import validate_polyline_constraints
 
 
 def main() -> None:
