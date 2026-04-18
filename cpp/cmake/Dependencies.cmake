@@ -13,6 +13,11 @@ set(AUTORIGAMI_GEOMETRY_CENTRAL_TAG "v1.0.0")
 set(AUTORIGAMI_GEOMETRY_CENTRAL_COMMIT "1f8a50c353e90322294c1c5aa0d411b7894f24ed")
 set(AUTORIGAMI_GEOMETRY_CENTRAL_REPOSITORY "https://github.com/nmwsharp/geometry-central.git")
 
+set(AUTORIGAMI_BOOST_VERSION "1.90.0")
+set(AUTORIGAMI_BOOST_URL
+    "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz")
+set(AUTORIGAMI_BOOST_SHA256 "5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9")
+
 FetchContent_Declare(
     eigen
     URL "${AUTORIGAMI_EIGEN_URL}"
@@ -50,3 +55,22 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(geometry_central)
+
+FetchContent_Declare(
+    boost
+    URL "${AUTORIGAMI_BOOST_URL}"
+    URL_HASH "SHA256=${AUTORIGAMI_BOOST_SHA256}"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+
+FetchContent_MakeAvailable(boost)
+
+if(NOT TARGET autorigami_boost)
+  add_library(autorigami_boost INTERFACE)
+  target_include_directories(
+      autorigami_boost
+      SYSTEM
+      INTERFACE
+      "${boost_SOURCE_DIR}"
+  )
+endif()

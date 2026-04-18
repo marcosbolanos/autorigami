@@ -122,4 +122,3 @@ double CubicPowerBasisSegment::curvature_squared(double t) const {
 }
 
 }  // namespace autorigami
-
