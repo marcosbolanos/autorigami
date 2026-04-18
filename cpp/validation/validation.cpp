@@ -10,38 +10,19 @@ namespace autorigami {
 
 namespace {
 
-[[nodiscard]] double squared_distance(const Point3& left, const Point3& right) {
-    const double dx = left[0] - right[0];
-    const double dy = left[1] - right[1];
-    const double dz = left[2] - right[2];
-    return dx * dx + dy * dy + dz * dz;
+[[nodiscard]] double squared_distance(const Vec3& left, const Vec3& right) {
+    return norm2(left - right);
 }
 
-[[nodiscard]] Point3 subtract(const Point3& left, const Point3& right) {
-    return {left[0] - right[0], left[1] - right[1], left[2] - right[2]};
-}
-
-[[nodiscard]] Point3 cross(const Point3& left, const Point3& right) {
-    return {
-        left[1] * right[2] - left[2] * right[1],
-        left[2] * right[0] - left[0] * right[2],
-        left[0] * right[1] - left[1] * right[0],
-    };
-}
-
-[[nodiscard]] double norm(const Point3& point) {
-    return std::sqrt(point[0] * point[0] + point[1] * point[1] + point[2] * point[2]);
-}
-
-[[nodiscard]] std::vector<double> compute_arclengths(const std::vector<Point3>& points) {
+[[nodiscard]] std::vector<double> compute_arclengths(const std::vector<Vec3>& points) {
     std::vector<double> arclengths(points.size(), 0.0);
     for (std::size_t index = 1; index < points.size(); ++index) {
-        arclengths[index] = arclengths[index - 1] + norm(subtract(points[index], points[index - 1]));
+        arclengths[index] = arclengths[index - 1] + norm(points[index] - points[index - 1]);
     }
     return arclengths;
 }
 
-[[nodiscard]] std::vector<double> compute_curvature_radius(const std::vector<Point3>& points) {
+[[nodiscard]] std::vector<double> compute_curvature_radius(const std::vector<Vec3>& points) {
     std::vector<double> radius(points.size(), std::numeric_limits<double>::infinity());
     if (points.size() < 3) {
         return radius;
@@ -49,9 +30,9 @@ namespace {
 
     constexpr double epsilon = 1e-12;
     for (std::size_t index = 1; index + 1 < points.size(); ++index) {
-        const Point3 ab = subtract(points[index], points[index - 1]);
-        const Point3 bc = subtract(points[index + 1], points[index]);
-        const Point3 ac = subtract(points[index + 1], points[index - 1]);
+        const Vec3 ab = points[index] - points[index - 1];
+        const Vec3 bc = points[index + 1] - points[index];
+        const Vec3 ac = points[index + 1] - points[index - 1];
 
         const double a = norm(ab);
         const double b = norm(bc);
@@ -72,7 +53,7 @@ namespace {
 }
 
 [[nodiscard]] ConstraintReport compute_separation_report(
-    const std::vector<Point3>& points,
+    const std::vector<Vec3>& points,
     const std::vector<double>& arclengths,
     double separation_world,
     int neighbor_exclusion
@@ -137,7 +118,7 @@ double ConstraintReport::ratio() const {
 }
 
 ValidationReport validate_polyline_constraints(
-    const std::vector<Point3>& points,
+    const std::vector<Vec3>& points,
     double world_to_nm,
     double separation_nm,
     double min_curvature_radius_nm,

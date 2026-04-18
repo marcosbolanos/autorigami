@@ -1,6 +1,6 @@
 # Contributing
 
-## Native development
+## Setup
 
 Install the dev toolchain once:
 
@@ -8,10 +8,42 @@ Install the dev toolchain once:
 uv sync --group dev
 ```
 
-After that, rebuild only the native extension when you change files under `cpp/`:
+Refresh the editable install whenever you add, delete, or rename Python package files:
+
+```bash
+uv pip install --python .venv/bin/python -e . --reinstall
+```
+
+## Native development
+
+Rebuild the native extension when you change files under `cpp/`:
 
 ```bash
 ./scripts/build_native.sh
 ```
 
-That script configures CMake in `.cmake-build/native`, builds the `_native` module, and installs it in-place to `src/autorigami/`.
+That script configures CMake in `.cmake-build/native`, builds the `_native` module, installs it in-place to `src/autorigami/`, and refreshes `compile_commands.json` for `clangd`.
+
+## Testing
+
+Run native C++ tests with CTest:
+
+```bash
+ctest --test-dir .cmake-build/native --output-on-failure
+```
+
+Run Python tests with pytest:
+
+```bash
+./.venv/bin/python -m pytest
+```
+
+Recommended workflow after changing native code:
+
+```bash
+./scripts/build_native.sh
+ctest --test-dir .cmake-build/native --output-on-failure
+./.venv/bin/python -m pytest
+```
+
+If you only changed Python code, skip the native rebuild and just run pytest.

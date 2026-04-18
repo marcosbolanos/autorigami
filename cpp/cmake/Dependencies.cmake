@@ -2,6 +2,8 @@ include(FetchContent)
 
 set(FETCHCONTENT_QUIET OFF)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+set(BUILD_TESTING OFF CACHE BOOL "Disable third-party dependency tests" FORCE)
+set(EIGEN_BUILD_TESTING OFF CACHE BOOL "Disable Eigen tests" FORCE)
 
 set(AUTORIGAMI_EIGEN_VERSION "3.4.0")
 set(AUTORIGAMI_EIGEN_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz")

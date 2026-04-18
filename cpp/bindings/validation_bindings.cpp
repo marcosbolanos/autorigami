@@ -11,7 +11,7 @@ namespace py = pybind11;
 
 namespace {
 
-[[nodiscard]] std::vector<autorigami::Point3> load_points(
+[[nodiscard]] std::vector<autorigami::Vec3> load_points(
     const py::array_t<double, py::array::c_style | py::array::forcecast>& points
 ) {
     if (points.ndim() != 2 || points.shape(1) != 3) {
@@ -19,9 +19,13 @@ namespace {
     }
 
     const auto view = points.unchecked<2>();
-    std::vector<autorigami::Point3> result(static_cast<std::size_t>(points.shape(0)));
+    std::vector<autorigami::Vec3> result(static_cast<std::size_t>(points.shape(0)));
     for (py::ssize_t row = 0; row < points.shape(0); ++row) {
-        result[static_cast<std::size_t>(row)] = {view(row, 0), view(row, 1), view(row, 2)};
+        result[static_cast<std::size_t>(row)] = {
+            .x = view(row, 0),
+            .y = view(row, 1),
+            .z = view(row, 2),
+        };
     }
     return result;
 }
