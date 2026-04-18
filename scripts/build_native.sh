@@ -8,7 +8,12 @@ VENV_BIN_DIR="$(dirname "$VENV_PYTHON")"
 VENV_CMAKE="${VENV_CMAKE:-"$VENV_BIN_DIR/cmake"}"
 VENV_NINJA="${VENV_NINJA:-"$VENV_BIN_DIR/ninja"}"
 BUILD_DIR="${BUILD_DIR:-"$ROOT_DIR/.cmake-build/native"}"
-INSTALL_PREFIX="${INSTALL_PREFIX:-"$ROOT_DIR/src"}"
+DEFAULT_INSTALL_PREFIX="$("$VENV_PYTHON" - <<'PY'
+import sysconfig
+print(sysconfig.get_path("platlib"))
+PY
+)"
+INSTALL_PREFIX="${INSTALL_PREFIX:-"$DEFAULT_INSTALL_PREFIX"}"
 COMPILE_COMMANDS_LINK="${COMPILE_COMMANDS_LINK:-"$ROOT_DIR/compile_commands.json"}"
 
 if [[ ! -x "$VENV_PYTHON" ]]; then

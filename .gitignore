@@ -28,6 +28,8 @@ CMakeFiles/
 cmake-build-*/
 .cmake-build/
 compile_commands.json
+cpp/Testing/
+cpp/tests/Testing/
 
 # Tool caches
 .mypy_cache/

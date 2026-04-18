@@ -24,6 +24,14 @@ Rebuild the native extension when you change files under `cpp/`:
 
 That script configures CMake in `.cmake-build/native`, builds the `_native` module, installs it in-place to `src/autorigami/`, and refreshes `compile_commands.json` for `clangd`.
 
+Native code is organized under:
+
+```text
+cpp/include/autorigami/...
+cpp/src/...
+cpp/tests/...
+```
+
 ## Testing
 
 Run native C++ tests with CTest:

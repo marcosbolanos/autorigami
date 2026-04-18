@@ -11,6 +11,7 @@ pybind11_add_module(
     src/bindings/validation_bindings.cpp
     src/splines/splines.cpp
     src/validation/validation.cpp
+    src/curvature/curvature_math.cpp
 )
 
 target_compile_features(_native PRIVATE cxx_std_20)
@@ -23,6 +24,8 @@ if(AUTORIGAMI_BUILD_TESTS)
     add_executable(
         autorigami_validation_tests
         tests/validation/validation_test.cpp
+        src/splines/splines.cpp
+        src/curvature/curvature_math.cpp
         src/validation/validation.cpp
     )
 
@@ -43,4 +46,17 @@ if(AUTORIGAMI_BUILD_TESTS)
     target_link_libraries(autorigami_splines_tests PRIVATE geometry-central)
 
     add_test(NAME autorigami_splines_tests COMMAND autorigami_splines_tests)
+
+    add_executable(
+        autorigami_curvature_math_tests
+        tests/curvature/curvature_math_test.cpp
+        src/splines/splines.cpp
+        src/curvature/curvature_math.cpp
+    )
+
+    target_compile_features(autorigami_curvature_math_tests PRIVATE cxx_std_20)
+    target_include_directories(autorigami_curvature_math_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(autorigami_curvature_math_tests PRIVATE geometry-central)
+
+    add_test(NAME autorigami_curvature_math_tests COMMAND autorigami_curvature_math_tests)
 endif()

@@ -67,9 +67,8 @@ def main() -> None:
     )
     validation = validate_polyline_constraints(
         points=bezier_validation_samples,
-        world_to_nm=args.world_to_nm,
-        separation_nm=args.spacing_nm,
-        min_curvature_radius_nm=args.min_curvature_radius_nm,
+        separation=args.spacing_nm / args.world_to_nm,
+        max_curvature=args.world_to_nm / args.min_curvature_radius_nm,
     )
     metrics = compute_polyline_metrics(
         points=bezier_validation_samples,

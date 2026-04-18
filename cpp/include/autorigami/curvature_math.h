@@ -2,17 +2,23 @@
 
 #include "autorigami/splines.h"
 
-#include <boost/math/tools/roots.hpp>
-#include <vector>
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-
 namespace autorigami {
 
-double solve_root_toms748(
-    const CubicPowerBasisSegment& seg,
-    double left,
-    double right);
+struct CurvatureMaxResult {
+    double lower_bound;
+    double upper_bound;
+    double best_t;
+};
+
+struct CurvatureMaxSolverConfig {
+    double abs_tolerance_squared = 1e-10;
+    int max_depth = 40;
+    double min_interval_width = 1e-12;
+};
+
+[[nodiscard]] CurvatureMaxResult max_curvature_of_segment(
+    const CubicPowerBasisSegment& segment,
+    const CurvatureMaxSolverConfig& config = {}
+);
 
 }  // namespace autorigami

@@ -1,3 +1,4 @@
+#include "autorigami/splines.h"
 #include "autorigami/validation.h"
 
 #include <cstdlib>
@@ -14,32 +15,111 @@ void expect(bool condition, const char* message) {
     }
 }
 
-void test_straight_polyline_passes_curvature_validation() {
-    const std::vector<autorigami::Vec3> points = {
-        {.x = 0.0, .y = 0.0, .z = 0.0},
-        {.x = 1.0, .y = 0.0, .z = 0.0},
-        {.x = 2.0, .y = 0.0, .z = 0.0},
-        {.x = 3.0, .y = 0.0, .z = 0.0},
+autorigami::CubicPowerBasisSegment valid_curve_one() {
+    return {
+        .a = {.x = 0.0, .y = 0.0, .z = 0.0},
+        .b = {.x = 0.0, .y = 1.0, .z = 0.0},
+        .c = {.x = 1.0, .y = -0.5, .z = 0.0},
+        .d = {.x = 0.0, .y = 0.0625, .z = 0.0},
+    };
+}
+
+autorigami::CubicPowerBasisSegment valid_curve_two() {
+    return {
+        .a = {.x = 0.0, .y = 0.0, .z = 0.0},
+        .b = {.x = 0.0, .y = 0.5, .z = 0.0},
+        .c = {.x = 1.0, .y = -0.75, .z = 0.0},
+        .d = {.x = 0.0, .y = 0.28125, .z = 0.0},
+    };
+}
+
+autorigami::CubicPowerBasisSegment invalid_curve() {
+    return {
+        .a = {.x = 0.0, .y = 0.0, .z = 0.0},
+        .b = {.x = 0.0, .y = 3.0, .z = 0.0},
+        .c = {.x = 1.0, .y = -3.0, .z = 0.0},
+        .d = {.x = 0.0, .y = 0.75, .z = 0.0},
+    };
+}
+
+autorigami::PiecewiseCubicHermiteSpline valid_piecewise_curve() {
+    const std::vector<autorigami::CubicHermiteSegment> segments = {
+        {
+            .p0 = {.x = 0.0, .y = 0.0625, .z = 0.0},
+            .p1 = {.x = 1.0, .y = 0.5625, .z = 0.0},
+            .m0 = {.x = 1.0, .y = -0.5, .z = 0.0},
+            .m1 = {.x = 1.0, .y = 1.5, .z = 0.0},
+        },
+        {
+            .p0 = {.x = 1.0, .y = 0.28125, .z = 0.0},
+            .p1 = {.x = 2.0, .y = 0.03125, .z = 0.0},
+            .m0 = {.x = 1.0, .y = -0.75, .z = 0.0},
+            .m1 = {.x = 1.0, .y = 0.25, .z = 0.0},
+        },
     };
 
-    const autorigami::ValidationReport report = autorigami::validate_polyline_constraints(
-        points,
-        1.0,
-        0.5,
-        0.5,
-        1
+    return autorigami::PiecewiseCubicHermiteSpline(segments);
+}
+
+autorigami::PiecewiseCubicHermiteSpline invalid_piecewise_curve() {
+    const std::vector<autorigami::CubicHermiteSegment> segments = {
+        {
+            .p0 = {.x = 0.0, .y = 0.0625, .z = 0.0},
+            .p1 = {.x = 1.0, .y = 0.5625, .z = 0.0},
+            .m0 = {.x = 1.0, .y = -0.5, .z = 0.0},
+            .m1 = {.x = 1.0, .y = 1.5, .z = 0.0},
+        },
+        {
+            .p0 = {.x = 1.0, .y = 0.75, .z = 0.0},
+            .p1 = {.x = 2.0, .y = 0.75, .z = 0.0},
+            .m0 = {.x = 1.0, .y = -3.0, .z = 0.0},
+            .m1 = {.x = 1.0, .y = 3.0, .z = 0.0},
+        },
+    };
+
+    return autorigami::PiecewiseCubicHermiteSpline(segments);
+}
+
+void test_validation_accepts_known_valid_curves_and_rejects_known_invalid_curve() {
+    constexpr double max_curvature = 2.5;
+    constexpr double curvature_tolerance = 0.01;
+
+    expect(
+        autorigami::validate_curve_curvature(valid_curve_one(), max_curvature, curvature_tolerance),
+        "first valid curve should pass curvature validation"
+    );
+    expect(
+        autorigami::validate_curve_curvature(valid_curve_two(), max_curvature, curvature_tolerance),
+        "second valid curve should pass curvature validation"
+    );
+    expect(
+        !autorigami::validate_curve_curvature(invalid_curve(), max_curvature, curvature_tolerance),
+        "invalid curve should fail curvature validation"
     );
 
-    expect(report.curvature.compliant_count == 4, "straight polyline should satisfy curvature");
-    expect(report.curvature.total_count == 4, "straight polyline should report all samples");
-    expect(report.curvature.ratio() == 1.0, "straight polyline should have full curvature ratio");
+    expect(
+        autorigami::validate_piecewise_curve_curvature(
+            valid_piecewise_curve(),
+            max_curvature,
+            curvature_tolerance
+        ),
+        "valid piecewise curve should pass curvature validation"
+    );
+    expect(
+        !autorigami::validate_piecewise_curve_curvature(
+            invalid_piecewise_curve(),
+            max_curvature,
+            curvature_tolerance
+        ),
+        "piecewise curve with one invalid segment should fail curvature validation"
+    );
 }
 
 }  // namespace
 
 int main() {
     try {
-        test_straight_polyline_passes_curvature_validation();
+        test_validation_accepts_known_valid_curves_and_rejects_known_invalid_curve();
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return EXIT_FAILURE;

@@ -32,16 +32,14 @@ namespace {
 
 autorigami::ValidationReport validate_polyline_constraints_py(
     const py::array_t<double, py::array::c_style | py::array::forcecast>& points,
-    double world_to_nm,
-    double separation_nm,
-    double min_curvature_radius_nm,
+    double separation,
+    double max_curvature,
     int neighbor_exclusion
 ) {
     return autorigami::validate_polyline_constraints(
         load_points(points),
-        world_to_nm,
-        separation_nm,
-        min_curvature_radius_nm,
+        separation,
+        max_curvature,
         neighbor_exclusion
     );
 }
@@ -62,9 +60,8 @@ void register_validation_bindings(py::module_& module) {
         "validate_polyline_constraints",
         &validate_polyline_constraints_py,
         py::arg("points"),
-        py::arg("world_to_nm"),
-        py::arg("separation_nm"),
-        py::arg("min_curvature_radius_nm"),
+        py::arg("separation"),
+        py::arg("max_curvature"),
         py::arg("neighbor_exclusion") = 8
     );
 }

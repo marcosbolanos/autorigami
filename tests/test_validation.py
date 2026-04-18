@@ -18,9 +18,8 @@ def test_validate_polyline_constraints_accepts_straight_polyline() -> None:
 
     report = validate_polyline_constraints(
         points=points,
-        world_to_nm=1.0,
-        separation_nm=0.5,
-        min_curvature_radius_nm=0.5,
+        separation=0.5,
+        max_curvature=2.0,
         neighbor_exclusion=1,
     )
 
