@@ -11,57 +11,48 @@ namespace py = pybind11;
 
 namespace {
 
-[[nodiscard]] std::vector<autorigami::Vec3> load_points(
-    const py::array_t<double, py::array::c_style | py::array::forcecast>& points
+[[nodiscard]] autorigami::PiecewiseCubicHermiteSpline load_hermite_segments(
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& segments
 ) {
-    if (points.ndim() != 2 || points.shape(1) != 3) {
-        throw std::invalid_argument("points must have shape (N, 3)");
+    if (segments.ndim() != 3 || segments.shape(1) != 4 || segments.shape(2) != 3) {
+        throw std::invalid_argument("segments must have shape (N, 4, 3)");
     }
 
-    const auto view = points.unchecked<2>();
-    std::vector<autorigami::Vec3> result(static_cast<std::size_t>(points.shape(0)));
-    for (py::ssize_t row = 0; row < points.shape(0); ++row) {
-        result[static_cast<std::size_t>(row)] = {
-            .x = view(row, 0),
-            .y = view(row, 1),
-            .z = view(row, 2),
+    const auto view = segments.unchecked<3>();
+    std::vector<autorigami::CubicHermiteSegment> loaded_segments(
+        static_cast<std::size_t>(segments.shape(0))
+    );
+    for (py::ssize_t index = 0; index < segments.shape(0); ++index) {
+        loaded_segments[static_cast<std::size_t>(index)] = {
+            .p0 = {.x = view(index, 0, 0), .y = view(index, 0, 1), .z = view(index, 0, 2)},
+            .p1 = {.x = view(index, 1, 0), .y = view(index, 1, 1), .z = view(index, 1, 2)},
+            .m0 = {.x = view(index, 2, 0), .y = view(index, 2, 1), .z = view(index, 2, 2)},
+            .m1 = {.x = view(index, 3, 0), .y = view(index, 3, 1), .z = view(index, 3, 2)},
         };
     }
-    return result;
+    return autorigami::PiecewiseCubicHermiteSpline(std::move(loaded_segments));
 }
 
-autorigami::ValidationReport validate_polyline_constraints_py(
-    const py::array_t<double, py::array::c_style | py::array::forcecast>& points,
-    double separation,
+bool validate_piecewise_curve_curvature_py(
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& segments,
     double max_curvature,
-    int neighbor_exclusion
+    double curvature_tolerance
 ) {
-    return autorigami::validate_polyline_constraints(
-        load_points(points),
-        separation,
+    return autorigami::validate_piecewise_curve_curvature(
+        load_hermite_segments(segments),
         max_curvature,
-        neighbor_exclusion
+        curvature_tolerance
     );
 }
 
 }  // namespace
 
 void register_validation_bindings(py::module_& module) {
-    py::class_<autorigami::ConstraintReport>(module, "ConstraintReport")
-        .def_readonly("compliant_count", &autorigami::ConstraintReport::compliant_count)
-        .def_readonly("total_count", &autorigami::ConstraintReport::total_count)
-        .def_property_readonly("ratio", &autorigami::ConstraintReport::ratio);
-
-    py::class_<autorigami::ValidationReport>(module, "ValidationReport")
-        .def_readonly("separation", &autorigami::ValidationReport::separation)
-        .def_readonly("curvature", &autorigami::ValidationReport::curvature);
-
     module.def(
-        "validate_polyline_constraints",
-        &validate_polyline_constraints_py,
-        py::arg("points"),
-        py::arg("separation"),
+        "validate_piecewise_curve_curvature",
+        &validate_piecewise_curve_curvature_py,
+        py::arg("segments"),
         py::arg("max_curvature"),
-        py::arg("neighbor_exclusion") = 8
+        py::arg("curvature_tolerance")
     );
 }

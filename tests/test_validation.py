@@ -2,30 +2,30 @@ from __future__ import annotations
 
 import numpy as np
 
-from autorigami._native import validate_polyline_constraints
+from autorigami._native import validate_piecewise_curve_curvature
 
 
-def test_validate_polyline_constraints_accepts_straight_polyline() -> None:
-    points = np.array(
+def test_validate_piecewise_curve_curvature_accepts_straight_segments() -> None:
+    segments = np.array(
         [
-            [0.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [2.0, 0.0, 0.0],
-            [3.0, 0.0, 0.0],
+            [
+                [0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+            ],
+            [
+                [1.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+            ],
         ],
         dtype=float,
     )
 
-    report = validate_polyline_constraints(
-        points=points,
-        separation=0.5,
+    assert validate_piecewise_curve_curvature(
+        segments=segments,
         max_curvature=2.0,
-        neighbor_exclusion=1,
+        curvature_tolerance=0.01,
     )
-
-    assert report.separation.compliant_count == 4
-    assert report.separation.total_count == 4
-    assert report.separation.ratio == 1.0
-    assert report.curvature.compliant_count == 4
-    assert report.curvature.total_count == 4
-    assert report.curvature.ratio == 1.0

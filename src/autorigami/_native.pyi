@@ -1,18 +1,6 @@
-class ConstraintReport:
-    compliant_count: int
-    total_count: int
-
-    @property
-    def ratio(self) -> float: ...
-
-class ValidationReport:
-    separation: ConstraintReport
-    curvature: ConstraintReport
-
 def add(left: int, right: int) -> int: ...
-def validate_polyline_constraints(
-    points,
-    separation: float,
+def validate_piecewise_curve_curvature(
+    segments,
     max_curvature: float,
-    neighbor_exclusion: int = 8,
-) -> ValidationReport: ...
+    curvature_tolerance: float,
+) -> bool: ...

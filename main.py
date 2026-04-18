@@ -18,8 +18,23 @@ from autorigami.parametrization import (
     polyline_to_cubic_bezier_chain,
     sample_cubic_bezier_chain,
 )
-from autorigami._native import validate_polyline_constraints
+from autorigami._native import validate_piecewise_curve_curvature
 from autorigami.spiral_generation import generate_spiral_on_surface, generate_tight_spiral_ode
+
+
+def cubic_bezier_chain_to_cubic_hermite_segments(beziers) -> list[list[list[float]]]:
+    hermite_segments: list[list[list[float]]] = []
+    for curve in beziers:
+        b0, b1, b2, b3 = curve
+        hermite_segments.append(
+            [
+                b0.tolist(),
+                b3.tolist(),
+                (3.0 * (b1 - b0)).tolist(),
+                (3.0 * (b3 - b2)).tolist(),
+            ]
+        )
+    return hermite_segments
 
 
 def main() -> None:
@@ -65,10 +80,10 @@ def main() -> None:
         bezier_chain,
         num_samples=args.validation_samples,
     )
-    validation = validate_polyline_constraints(
-        points=bezier_validation_samples,
-        separation=args.spacing_nm / args.world_to_nm,
+    curvature_validation = validate_piecewise_curve_curvature(
+        segments=cubic_bezier_chain_to_cubic_hermite_segments(bezier_chain),
         max_curvature=args.world_to_nm / args.min_curvature_radius_nm,
+        curvature_tolerance=args.world_to_nm * 0.1 / (args.min_curvature_radius_nm**2),
     )
     metrics = compute_polyline_metrics(
         points=bezier_validation_samples,
@@ -107,10 +122,7 @@ def main() -> None:
         "bezier_samples_obj": str(bezier_samples_obj_path),
         "overlay_obj": str(overlay_obj_path),
         "validation": {
-            "separation_compliant": validation.separation.compliant_count,
-            "separation_total": validation.separation.total_count,
-            "curvature_compliant": validation.curvature.compliant_count,
-            "curvature_total": validation.curvature.total_count,
+            "curvature_valid": curvature_validation,
         },
         "metrics": {
             "length_nm": metrics.length_nm,
@@ -158,14 +170,7 @@ def main() -> None:
     print(f"Raw polyline OBJ: {polyline_obj_raw_path}")
     print(f"Bezier sample OBJ: {bezier_samples_obj_path}")
     print(f"Overlay OBJ: {overlay_obj_path}")
-    print(
-        "Validation separation compliance: "
-        f"{validation.separation.compliant_count}/{validation.separation.total_count}"
-    )
-    print(
-        "Validation curvature compliance: "
-        f"{validation.curvature.compliant_count}/{validation.curvature.total_count}"
-    )
+    print(f"Curvature validation: {'pass' if curvature_validation else 'fail'}")
     print(f"Polyline length: {metrics.length_nm:.2f} nm")
     print(
         "Nearest nonlocal separation (nm): "
