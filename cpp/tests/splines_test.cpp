@@ -127,6 +127,63 @@ void test_cubic_hermite_segment_converts_to_power_basis() {
     );
 }
 
+void test_power_basis_segment_evaluates_position_and_derivatives() {
+    const autorigami::CubicPowerBasisSegment segment{
+        .a = {.x = 1.0, .y = -2.0, .z = 0.5},
+        .b = {.x = -3.0, .y = 4.0, .z = 1.5},
+        .c = {.x = 2.0, .y = -1.0, .z = 3.0},
+        .d = {.x = 5.0, .y = 6.0, .z = -2.0},
+    };
+
+    constexpr double tolerance = 1e-12;
+
+    expect_vec3_near(
+        segment.position(0.0),
+        {.x = 5.0, .y = 6.0, .z = -2.0},
+        tolerance,
+        "position(0) mismatch"
+    );
+    expect_vec3_near(
+        segment.position(1.0),
+        {.x = 5.0, .y = 7.0, .z = 3.0},
+        tolerance,
+        "position(1) mismatch"
+    );
+
+    expect_vec3_near(
+        segment.first_derivative(0.0),
+        {.x = 2.0, .y = -1.0, .z = 3.0},
+        tolerance,
+        "first_derivative(0) mismatch"
+    );
+    expect_vec3_near(
+        segment.first_derivative(1.0),
+        {.x = -1.0, .y = 1.0, .z = 7.5},
+        tolerance,
+        "first_derivative(1) mismatch"
+    );
+
+    expect_vec3_near(
+        segment.second_derivative(0.0),
+        {.x = -6.0, .y = 8.0, .z = 3.0},
+        tolerance,
+        "second_derivative(0) mismatch"
+    );
+    expect_vec3_near(
+        segment.second_derivative(1.0),
+        {.x = 0.0, .y = -4.0, .z = 6.0},
+        tolerance,
+        "second_derivative(1) mismatch"
+    );
+
+    expect_vec3_near(
+        segment.third_derivative(),
+        {.x = 6.0, .y = -12.0, .z = 3.0},
+        tolerance,
+        "third_derivative mismatch"
+    );
+}
+
 }  // namespace
 
 int main() {
@@ -134,6 +191,7 @@ int main() {
         test_polyline_construction_builds_one_segment_per_edge();
         test_catmull_rom_centripetal_uses_expected_nonuniform_tangents();
         test_cubic_hermite_segment_converts_to_power_basis();
+        test_power_basis_segment_evaluates_position_and_derivatives();
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return EXIT_FAILURE;

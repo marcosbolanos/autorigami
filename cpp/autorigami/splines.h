@@ -30,9 +30,16 @@ struct CubicPowerBasisSegment {
         return 6.0 * a * t + 2.0 * b;
     }
 
-    [[nodiscard]] Vec3 third_derivative(double) const {
+    [[nodiscard]] Vec3 third_derivative() const {
         return 6.0 * a;
     }
+
+    // squared curvature of a segment k²(t), in bounds [0, 1]
+    [[nodiscard]] double curvature_squared(double t) const;
+
+    // from paper : reduced form  of H(t)
+    // reduced polynomial whose roots identify stationary curvature points
+    [[nodiscard]] double reduced_curvature_extremum_polynomial(double t) const;
 };
 
 struct CubicHermiteSegment {

@@ -94,4 +94,32 @@ PiecewiseCubicHermiteSpline PiecewiseCubicHermiteSpline::from_polyline(
     throw std::invalid_argument("unsupported tangent policy");
 }
 
+double CubicPowerBasisSegment::reduced_curvature_extremum_polynomial(double t) const {
+    const Vec3 v = first_derivative(t);   // r'(t)
+    const Vec3 w = second_derivative(t);  // r''(t)
+    const Vec3 u = third_derivative();    // 6a
+
+    const Vec3 vxw = cross(v, w);
+
+    const double v2 = norm2(v);        // ||v||^2
+    const double vxw2 = norm2(vxw);    // ||v x w||^2
+    const double v_dot_w = dot(v, w);
+    const double triple_term = dot(vxw, cross(v, u));
+
+    return v2 * triple_term - 3.0 * vxw2 * v_dot_w; // H(t)
+}
+
+double CubicPowerBasisSegment::curvature_squared(double t) const {
+    const Vec3 v = first_derivative(t);
+    const Vec3 w = second_derivative(t);
+
+    const Vec3 vxw = cross(v, w);
+    
+    const double v2 = norm2(v);
+    const double numerator = norm2(vxw); // ||v x w||^2
+    const double denominator = v2 * v2 * v2; // || v ||^6
+    return numerator / denominator;
+}
+
 }  // namespace autorigami
+
