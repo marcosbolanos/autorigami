@@ -94,16 +94,4 @@ PiecewiseCubicHermiteSpline PiecewiseCubicHermiteSpline::from_polyline(
     throw std::invalid_argument("unsupported tangent policy");
 }
 
-const std::vector<CubicHermiteSegment>& PiecewiseCubicHermiteSpline::segments() const {
-    return segments_;
-}
-
-std::size_t PiecewiseCubicHermiteSpline::size() const {
-    return segments_.size();
-}
-
-bool PiecewiseCubicHermiteSpline::empty() const {
-    return segments_.empty();
-}
-
 }  // namespace autorigami

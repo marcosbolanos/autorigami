@@ -11,12 +11,28 @@ enum class TangentPolicy {
 };
 
 struct CubicPowerBasisSegment {
-    Vec3 a;
+    Vec3 a; // r(t) = a t³ + b t² + c t + d
     Vec3 b;
     Vec3 c;
     Vec3 d;
 
     [[nodiscard]] bool operator==(const CubicPowerBasisSegment& other) const = default;
+
+    [[nodiscard]] Vec3 position(double t) const {
+        return ((a * t + b) * t + c) * t + d;
+    }
+
+    [[nodiscard]] Vec3 first_derivative(double t) const {
+        return (3.0 * a * t + 2.0 * b) * t + c;
+    }
+
+    [[nodiscard]] Vec3 second_derivative(double t) const {
+        return 6.0 * a * t + 2.0 * b;
+    }
+
+    [[nodiscard]] Vec3 third_derivative(double) const {
+        return 6.0 * a;
+    }
 };
 
 struct CubicHermiteSegment {
@@ -38,9 +54,17 @@ class PiecewiseCubicHermiteSpline {
         TangentPolicy tangent_policy
     );
 
-    [[nodiscard]] const std::vector<CubicHermiteSegment>& segments() const;
-    [[nodiscard]] std::size_t size() const;
-    [[nodiscard]] bool empty() const;
+    [[nodiscard]] const std::vector<CubicHermiteSegment>& segments() const {
+        return segments_;
+    }
+
+    [[nodiscard]] std::size_t size() const {
+        return segments_.size();
+    }
+
+    [[nodiscard]] bool empty() const {
+        return segments_.empty();
+    }
 
   private:
     std::vector<CubicHermiteSegment> segments_;
