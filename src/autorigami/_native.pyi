@@ -16,7 +16,8 @@ def convert_trimesh_to_manifold_surface_mesh(
 def piecewise_hermite_generator(
     vertices: FloatArray,
     faces: IndexArray,
-    axis: FloatArray,
+    axis_origin: FloatArray,
+    axis_direction: FloatArray,
 ) -> tuple[PiecewiseHermite, GeneratorRunData]: ...
 def validate_piecewise_curve_curvature(
     piecewise_hermite: PiecewiseHermite,

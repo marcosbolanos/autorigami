@@ -37,6 +37,7 @@ sdist.include = [
     "cpp/src/generator/seed_point.cpp",
     "cpp/src/splines/splines.cpp",
     "cpp/src/validation/validation.cpp",
+    "cpp/tests/generator/seed_point_test.cpp",
     "cpp/tests/splines/splines_test.cpp",
     "cpp/tests/validation/validation_test.cpp",
     "src/autorigami/_native.pyi",

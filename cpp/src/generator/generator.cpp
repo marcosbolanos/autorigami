@@ -6,7 +6,7 @@ namespace autorigami {
 PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
     geometrycentral::surface::ManifoldSurfaceMesh& mesh,
     geometrycentral::surface::VertexPositionGeometry& geometry,
-    const Vec3& axis
+    const GeneratorAxis& axis
 ) {
     const geometrycentral::surface::SurfacePoint seed_point_on_surface =
         initialize_surface_seed_point(mesh, geometry, axis);

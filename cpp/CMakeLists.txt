@@ -62,6 +62,18 @@ if(AUTORIGAMI_BUILD_TESTS)
     add_test(NAME autorigami_splines_tests COMMAND autorigami_splines_tests)
 
     add_executable(
+        autorigami_generator_tests
+        tests/generator/seed_point_test.cpp
+        src/generator/seed_point.cpp
+    )
+
+    target_compile_features(autorigami_generator_tests PRIVATE cxx_std_20)
+    target_include_directories(autorigami_generator_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(autorigami_generator_tests PRIVATE geometry-central)
+
+    add_test(NAME autorigami_generator_tests COMMAND autorigami_generator_tests)
+
+    add_executable(
         autorigami_curvature_math_tests
         tests/curvature/curvature_math_test.cpp
         src/splines/splines.cpp

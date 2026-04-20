@@ -34,11 +34,12 @@ def main() -> None:
     axis_direction, axis_origin, axis_source = resolve_axis(mesh, args)
     vertices = np.asarray(mesh.vertices, dtype=np.float64)
     faces = np.asarray(mesh.faces, dtype=np.int64)
-    axis = np.asarray(axis_direction, dtype=np.float64)
+    axis_origin_array = np.asarray(axis_origin, dtype=np.float64)
+    axis_direction_array = np.asarray(axis_direction, dtype=np.float64)
 
     if args.generator == "piecewise_hermite":
         piecewise_hermite, generator_run_data = piecewise_hermite_generator(
-            vertices, faces, axis
+            vertices, faces, axis_origin_array, axis_direction_array
         )
     else:  # we have room to add other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")

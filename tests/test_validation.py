@@ -61,8 +61,14 @@ def test_validate_piecewise_curve_curvature_accepts_straight_segments() -> None:
 
 def test_piecewise_hermite_generator_returns_dataclass() -> None:
     vertices, faces = _sample_trimesh_arrays()
-    axis = np.array([0.0, 0.0, 1.0], dtype=np.float64)
-    generated, run_data = piecewise_hermite_generator(vertices, faces, axis)
+    axis_origin = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+    axis_direction = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+    generated, run_data = piecewise_hermite_generator(
+        vertices,
+        faces,
+        axis_origin,
+        axis_direction,
+    )
 
     assert isinstance(generated, PiecewiseHermite)
     assert generated.points.shape == generated.tangents.shape
@@ -73,9 +79,12 @@ def test_piecewise_hermite_generator_returns_dataclass() -> None:
     assert run_data["cpp_parameter_step"] == 1.0
     assert run_data["input_mesh_vertex_count"] == int(vertices.shape[0])
     assert run_data["input_mesh_face_count"] == int(faces.shape[0])
-    assert run_data["input_axis_x"] == axis[0]
-    assert run_data["input_axis_y"] == axis[1]
-    assert run_data["input_axis_z"] == axis[2]
+    assert run_data["input_axis_origin_x"] == axis_origin[0]
+    assert run_data["input_axis_origin_y"] == axis_origin[1]
+    assert run_data["input_axis_origin_z"] == axis_origin[2]
+    assert run_data["input_axis_direction_x"] == axis_direction[0]
+    assert run_data["input_axis_direction_y"] == axis_direction[1]
+    assert run_data["input_axis_direction_z"] == axis_direction[2]
     assert validate_piecewise_curve_curvature(
         piecewise_hermite=generated,
         max_curvature=100.0,

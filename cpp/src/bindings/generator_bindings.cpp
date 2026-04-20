@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <memory>
+#include <string>
 #include <stdexcept>
 #include <tuple>
 #include <vector>
@@ -53,14 +54,15 @@ struct ConvertedManifoldMesh {
     return output;
 }
 
-[[nodiscard]] autorigami::Vec3 load_axis_vector(
-    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis
+[[nodiscard]] autorigami::Vec3 load_vec3(
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& values,
+    const char* argument_name
 ) {
-    if (axis.ndim() != 1 || axis.shape(0) != 3) {
-        throw std::invalid_argument("axis must have shape (3,)");
+    if (values.ndim() != 1 || values.shape(0) != 3) {
+        throw std::invalid_argument(std::string(argument_name) + " must have shape (3,)");
     }
 
-    const auto view = axis.unchecked<1>();
+    const auto view = values.unchecked<1>();
     return {.x = view(0), .y = view(1), .z = view(2)};
 }
 
@@ -127,14 +129,18 @@ struct ConvertedManifoldMesh {
 [[nodiscard]] py::tuple piecewise_hermite_generator_py(
     const py::array_t<double, py::array::c_style | py::array::forcecast>& vertices,
     const py::array_t<std::int64_t, py::array::c_style | py::array::forcecast>& faces,
-    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis_origin,
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis_direction
 ) {
     ConvertedManifoldMesh converted = convert_trimesh_to_manifold_surface_mesh(vertices, faces);
-    const autorigami::Vec3 axis_vector = load_axis_vector(axis);
+    const autorigami::GeneratorAxis axis{
+        .origin = load_vec3(axis_origin, "axis_origin"),
+        .direction = load_vec3(axis_direction, "axis_direction"),
+    };
     const autorigami::PiecewiseHermiteGeneratorResult generated = autorigami::piecewise_hermite_generator(
         *converted.mesh,
         *converted.geometry,
-        axis_vector
+        axis
     );
 
     py::module_ parametrization_module = py::module_::import("autorigami.parametrization");
@@ -150,9 +156,12 @@ struct ConvertedManifoldMesh {
     run_data["cpp_parameter_step"] = generated.run_data.parameter_step;
     run_data["input_mesh_vertex_count"] = converted.mesh->nVertices();
     run_data["input_mesh_face_count"] = converted.mesh->nFaces();
-    run_data["input_axis_x"] = axis_vector.x;
-    run_data["input_axis_y"] = axis_vector.y;
-    run_data["input_axis_z"] = axis_vector.z;
+    run_data["input_axis_origin_x"] = axis.origin.x;
+    run_data["input_axis_origin_y"] = axis.origin.y;
+    run_data["input_axis_origin_z"] = axis.origin.z;
+    run_data["input_axis_direction_x"] = axis.direction.x;
+    run_data["input_axis_direction_y"] = axis.direction.y;
+    run_data["input_axis_direction_z"] = axis.direction.z;
 
     return py::make_tuple(piecewise_hermite_class(**kwargs), run_data);
 }
@@ -171,6 +180,7 @@ void register_generator_bindings(py::module_& module) {
         &piecewise_hermite_generator_py,
         py::arg("vertices"),
         py::arg("faces"),
-        py::arg("axis")
+        py::arg("axis_origin"),
+        py::arg("axis_direction")
     );
 }
