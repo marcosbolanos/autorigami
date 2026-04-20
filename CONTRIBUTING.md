@@ -48,4 +48,8 @@ If you only changed Python code, skip the native rebuild and just run pytest.
 
 ```bash
 uv run ruff format
+./scripts/build_native.sh
 ```
+
+C/C++ linting is handled by `clang-tidy`, and it runs automatically during CMake builds.
+This is enabled by default in the dev build script (`./scripts/build_native.sh`).

@@ -4,6 +4,8 @@ find_package(pybind11 CONFIG REQUIRED)
 
 option(AUTORIGAMI_BUILD_TESTS "Build native C++ tests" ON)
 
+set(AUTORIGAMI_CLANG_TIDY_CMD clang-tidy;-p=${CMAKE_BINARY_DIR};--warnings-as-errors=*)
+
 pybind11_add_module(
     _native
     MODULE
@@ -20,6 +22,9 @@ pybind11_add_module(
 target_compile_features(_native PRIVATE cxx_std_20)
 target_include_directories(_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(_native PRIVATE geometry-central)
+if(AUTORIGAMI_DEV_LINT)
+    set_property(TARGET _native PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
+endif()
 
 install(TARGETS _native DESTINATION autorigami COMPONENT autorigami-python)
 
@@ -35,6 +40,9 @@ if(AUTORIGAMI_BUILD_TESTS)
     target_compile_features(autorigami_validation_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_validation_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(autorigami_validation_tests PRIVATE geometry-central)
+    if(AUTORIGAMI_DEV_LINT)
+        set_property(TARGET autorigami_validation_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
+    endif()
 
     add_test(NAME autorigami_validation_tests COMMAND autorigami_validation_tests)
 
@@ -47,6 +55,9 @@ if(AUTORIGAMI_BUILD_TESTS)
     target_compile_features(autorigami_splines_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_splines_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(autorigami_splines_tests PRIVATE geometry-central)
+    if(AUTORIGAMI_DEV_LINT)
+        set_property(TARGET autorigami_splines_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
+    endif()
 
     add_test(NAME autorigami_splines_tests COMMAND autorigami_splines_tests)
 
@@ -60,6 +71,9 @@ if(AUTORIGAMI_BUILD_TESTS)
     target_compile_features(autorigami_curvature_math_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_curvature_math_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(autorigami_curvature_math_tests PRIVATE geometry-central)
+    if(AUTORIGAMI_DEV_LINT)
+        set_property(TARGET autorigami_curvature_math_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
+    endif()
 
     add_test(NAME autorigami_curvature_math_tests COMMAND autorigami_curvature_math_tests)
 endif()
