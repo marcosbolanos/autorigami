@@ -1,11 +1,18 @@
 #include "autorigami/generator.h"
+#include "autorigami/generator/seed_point.h"
 
 namespace autorigami {
 
-PiecewiseHermiteGeneratorResult piecewise_hermite_generator() {
+PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
+    const geometrycentral::surface::ManifoldSurfaceMesh& mesh,
+    const geometrycentral::surface::VertexPositionGeometry& geometry,
+    const Vec3& axis
+) {
+    const Vec3 seed_point = initialize_surface_seed_point(mesh, geometry, axis);
+
     const PiecewiseHermiteData piecewise_hermite = {
         .points = {
-            {.x = 0.0, .y = 0.0, .z = 0.0},
+            seed_point,
             {.x = 1.0, .y = 0.4, .z = -0.2},
             {.x = 2.1, .y = -0.3, .z = 0.6},
             {.x = 3.0, .y = 0.1, .z = 1.0},

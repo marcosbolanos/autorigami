@@ -10,7 +10,9 @@ from autorigami.parametrization import Polyline
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Generate a spiral polyline on a mesh surface.")
+    parser = argparse.ArgumentParser(
+        description="Generate a spiral polyline on a mesh surface."
+    )
     parser.add_argument(
         "--input",
         default="assets/ellipsoid.obj",
@@ -22,8 +24,12 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["piecewise_hermite", "simple_spiral", "ode"],
         help="Spiral generation algorithm.",
     )
-    parser.add_argument("--turns", type=float, default=10.0, help="Number of spiral turns.")
-    parser.add_argument("--samples", type=int, default=1500, help="Number of polyline points.")
+    parser.add_argument(
+        "--turns", type=float, default=10.0, help="Number of spiral turns."
+    )
+    parser.add_argument(
+        "--samples", type=int, default=1500, help="Number of polyline points."
+    )
     parser.add_argument(
         "--validation-samples",
         type=int,
@@ -155,7 +161,9 @@ def save_polyline_obj(polyline: Polyline, output_path: Path) -> None:
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def save_overlay_obj(mesh: trimesh.Trimesh, polyline: Polyline, output_obj_path: Path) -> None:
+def save_overlay_obj(
+    mesh: trimesh.Trimesh, polyline: Polyline, output_obj_path: Path
+) -> None:
     points = polyline.points
     if points.shape[0] < 2:
         raise ValueError("Polyline must contain at least 2 points.")
@@ -187,7 +195,12 @@ def save_overlay_obj(mesh: trimesh.Trimesh, polyline: Polyline, output_obj_path:
     faces = np.asarray(mesh.faces, dtype=np.int64)
     face_normals = np.asarray(mesh.face_normals)
 
-    lines: list[str] = [f"mtllib {output_mtl_path.name}", "o input_mesh", "usemtl mesh_white", "s off"]
+    lines: list[str] = [
+        f"mtllib {output_mtl_path.name}",
+        "o input_mesh",
+        "usemtl mesh_white",
+        "s off",
+    ]
     for x, y, z in vertices:
         lines.append(f"v {x:.9g} {y:.9g} {z:.9g}")
     for nx, ny, nz in face_normals:
@@ -196,7 +209,9 @@ def save_overlay_obj(mesh: trimesh.Trimesh, polyline: Polyline, output_obj_path:
         i0 = int(f0) + 1
         i1 = int(f1) + 1
         i2 = int(f2) + 1
-        lines.append(f"f {i0}//{normal_index} {i1}//{normal_index} {i2}//{normal_index}")
+        lines.append(
+            f"f {i0}//{normal_index} {i1}//{normal_index} {i2}//{normal_index}"
+        )
 
     lines.append("o spiral_polyline")
     lines.append("usemtl spiral_line")
@@ -216,7 +231,9 @@ def normalize_axis(axis: np.ndarray) -> np.ndarray:
     return axis / norm
 
 
-def resolve_axis(mesh: trimesh.Trimesh, args: argparse.Namespace) -> tuple[np.ndarray, np.ndarray, str]:
+def resolve_axis(
+    mesh: trimesh.Trimesh, args: argparse.Namespace
+) -> tuple[np.ndarray, np.ndarray, str]:
     if args.axis_vector is not None:
         axis = normalize_axis(np.array(args.axis_vector, dtype=float))
         source = "axis-vector"

@@ -14,7 +14,9 @@ from .model import TightSpiralODEParams
 from .repulsion import repulsive_potential_gradient
 
 
-def _nearest_on_surface(mesh: trimesh.Trimesh, point: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _nearest_on_surface(
+    mesh: trimesh.Trimesh, point: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
     projected, _, face_idx = mesh.nearest.on_surface(point[None, :])
     idx = int(face_idx[0])
     normal = np.array(mesh.face_normals[idx], dtype=float)
@@ -80,7 +82,9 @@ def integrate_tight_spiral(
         a = params.tangential_speed_world
         b = a * params.spacing_world / max(circumference, params.spacing_world)
 
-        history = np.array(points[: max(0, len(points) - params.repulsion_lag_points)], dtype=float)
+        history = np.array(
+            points[: max(0, len(points) - params.repulsion_lag_points)], dtype=float
+        )
         grad_r = repulsive_potential_gradient(
             point=current,
             history=history,
@@ -99,9 +103,13 @@ def integrate_tight_spiral(
             min_radius_world=params.min_curvature_radius_world,
         )
 
-        ideal_axis_step_world = params.step_size_world * params.spacing_world / max(
-            circumference,
-            params.spacing_world,
+        ideal_axis_step_world = (
+            params.step_size_world
+            * params.spacing_world
+            / max(
+                circumference,
+                params.spacing_world,
+            )
         )
         min_axis_step_world = params.min_progress_fraction * ideal_axis_step_world
         if current_axis_world <= axis_min_world + params.step_size_world:

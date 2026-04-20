@@ -18,7 +18,10 @@ from autorigami.parametrization import (
     piecewise_hermite_to_bezier,
     sample_cubic_bezier_chain,
 )
-from autorigami._native import piecewise_hermite_generator, validate_piecewise_curve_curvature
+from autorigami._native import (
+    piecewise_hermite_generator,
+    validate_piecewise_curve_curvature,
+)
 
 
 def main() -> None:
@@ -31,9 +34,12 @@ def main() -> None:
     axis_direction, axis_origin, axis_source = resolve_axis(mesh, args)
     vertices = np.asarray(mesh.vertices, dtype=np.float64)
     faces = np.asarray(mesh.faces, dtype=np.int64)
+    axis = np.asarray(axis_direction, dtype=np.float64)
 
     if args.generator == "piecewise_hermite":
-        piecewise_hermite, generator_run_data = piecewise_hermite_generator(vertices, faces)
+        piecewise_hermite, generator_run_data = piecewise_hermite_generator(
+            vertices, faces, axis
+        )
     else:  # we have room to add other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")
 

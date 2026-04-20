@@ -53,6 +53,17 @@ struct ConvertedManifoldMesh {
     return output;
 }
 
+[[nodiscard]] autorigami::Vec3 load_axis_vector(
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis
+) {
+    if (axis.ndim() != 1 || axis.shape(0) != 3) {
+        throw std::invalid_argument("axis must have shape (3,)");
+    }
+
+    const auto view = axis.unchecked<1>();
+    return {.x = view(0), .y = view(1), .z = view(2)};
+}
+
 [[nodiscard]] std::vector<std::vector<std::size_t>> load_triangle_faces(
     const py::array_t<std::int64_t, py::array::c_style | py::array::forcecast>& faces,
     std::size_t vertex_count
@@ -115,10 +126,16 @@ struct ConvertedManifoldMesh {
 
 [[nodiscard]] py::tuple piecewise_hermite_generator_py(
     const py::array_t<double, py::array::c_style | py::array::forcecast>& vertices,
-    const py::array_t<std::int64_t, py::array::c_style | py::array::forcecast>& faces
+    const py::array_t<std::int64_t, py::array::c_style | py::array::forcecast>& faces,
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis
 ) {
     ConvertedManifoldMesh converted = convert_trimesh_to_manifold_surface_mesh(vertices, faces);
-    const autorigami::PiecewiseHermiteGeneratorResult generated = autorigami::piecewise_hermite_generator();
+    const autorigami::Vec3 axis_vector = load_axis_vector(axis);
+    const autorigami::PiecewiseHermiteGeneratorResult generated = autorigami::piecewise_hermite_generator(
+        *converted.mesh,
+        *converted.geometry,
+        axis_vector
+    );
 
     py::module_ parametrization_module = py::module_::import("autorigami.parametrization");
     py::object piecewise_hermite_class = parametrization_module.attr("PiecewiseHermite");
@@ -133,6 +150,9 @@ struct ConvertedManifoldMesh {
     run_data["cpp_parameter_step"] = generated.run_data.parameter_step;
     run_data["input_mesh_vertex_count"] = converted.mesh->nVertices();
     run_data["input_mesh_face_count"] = converted.mesh->nFaces();
+    run_data["input_axis_x"] = axis_vector.x;
+    run_data["input_axis_y"] = axis_vector.y;
+    run_data["input_axis_z"] = axis_vector.z;
 
     return py::make_tuple(piecewise_hermite_class(**kwargs), run_data);
 }
@@ -150,6 +170,7 @@ void register_generator_bindings(py::module_& module) {
         "piecewise_hermite_generator",
         &piecewise_hermite_generator_py,
         py::arg("vertices"),
-        py::arg("faces")
+        py::arg("faces"),
+        py::arg("axis")
     );
 }

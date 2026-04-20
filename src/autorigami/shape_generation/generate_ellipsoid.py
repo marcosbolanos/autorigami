@@ -54,7 +54,9 @@ def export_ellipsoid(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Generate an ellipsoid mesh.")
-    parser.add_argument("--out", default="outputs/ellipsoid.stl", help="Output mesh file path.")
+    parser.add_argument(
+        "--out", default="outputs/ellipsoid.stl", help="Output mesh file path."
+    )
     parser.add_argument("--rx", type=float, default=1.5, help="Radius along X axis.")
     parser.add_argument("--ry", type=float, default=1.0, help="Radius along Y axis.")
     parser.add_argument("--rz", type=float, default=0.8, help="Radius along Z axis.")

@@ -11,6 +11,7 @@ pybind11_add_module(
     src/bindings/generator_bindings.cpp
     src/bindings/validation_bindings.cpp
     src/generator/generator.cpp
+    src/generator/seed_point.cpp
     src/splines/splines.cpp
     src/validation/validation.cpp
     src/curvature/curvature_math.cpp

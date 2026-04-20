@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "autorigami/vec3.h"
+#include "geometrycentral/surface/manifold_surface_mesh.h"
+#include "geometrycentral/surface/vertex_position_geometry.h"
 
 namespace autorigami {
 
@@ -23,6 +25,10 @@ struct PiecewiseHermiteGeneratorResult {
     PiecewiseHermiteGeneratorRunData run_data;
 };
 
-[[nodiscard]] PiecewiseHermiteGeneratorResult piecewise_hermite_generator();
+[[nodiscard]] PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
+    const geometrycentral::surface::ManifoldSurfaceMesh& mesh,
+    const geometrycentral::surface::VertexPositionGeometry& geometry,
+    const Vec3& axis
+);
 
 }  // namespace autorigami

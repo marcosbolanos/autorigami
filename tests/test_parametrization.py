@@ -84,5 +84,9 @@ def test_explicit_types_and_sampling() -> None:
 
     assert isinstance(sampled, Polyline)
     assert sampled.points.shape == (25, 3)
-    np.testing.assert_allclose(sampled.points[0], bezier.segments[0, 0], rtol=0.0, atol=0.0)
-    np.testing.assert_allclose(sampled.points[-1], bezier.segments[-1, 3], rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(
+        sampled.points[0], bezier.segments[0, 0], rtol=0.0, atol=0.0
+    )
+    np.testing.assert_allclose(
+        sampled.points[-1], bezier.segments[-1, 3], rtol=0.0, atol=0.0
+    )

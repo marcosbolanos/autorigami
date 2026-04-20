@@ -16,7 +16,9 @@ def project_to_tangent_plane(vec: np.ndarray, normal: np.ndarray) -> np.ndarray:
     return vec - float(np.dot(vec, normal)) * normal
 
 
-def make_tangent_frame(normal: np.ndarray, axis: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def make_tangent_frame(
+    normal: np.ndarray, axis: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
     eta = project_to_tangent_plane(axis, normal)
     if float(np.linalg.norm(eta)) < _EPS:
         helper = np.array([1.0, 0.0, 0.0], dtype=float)
@@ -31,7 +33,9 @@ def make_tangent_frame(normal: np.ndarray, axis: np.ndarray) -> tuple[np.ndarray
     return tau, eta
 
 
-def estimate_circumference(point: np.ndarray, axis_origin: np.ndarray, axis: np.ndarray) -> float:
+def estimate_circumference(
+    point: np.ndarray, axis_origin: np.ndarray, axis: np.ndarray
+) -> float:
     rel = point - axis_origin
     axis_pos = float(np.dot(rel, axis))
     radial = rel - axis_pos * axis

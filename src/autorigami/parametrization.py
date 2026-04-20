@@ -34,7 +34,9 @@ class PiecewiseHermite:
         if self.points.shape != self.tangents.shape:
             raise ValueError("points and tangents must have the same shape")
         if self.points.shape[0] < 2:
-            raise ValueError("piecewise Hermite curve must contain at least one segment")
+            raise ValueError(
+                "piecewise Hermite curve must contain at least one segment"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,7 +86,6 @@ def _cubic_bezier_eval(control: FloatArray, t: FloatArray) -> FloatArray:
         + 3.0 * one_minus_t * (t_col**2) * control[2]
         + (t_col**3) * control[3]
     )
-
 
 
 def sample_cubic_bezier_chain(beziers: PiecewiseBezier, num_samples: int) -> Polyline:
