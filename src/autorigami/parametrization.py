@@ -86,37 +86,6 @@ def _cubic_bezier_eval(control: FloatArray, t: FloatArray) -> FloatArray:
     )
 
 
-def polyline_to_cubic_bezier_chain(polyline: Polyline) -> PiecewiseBezier:
-    """Convert a polyline to a cubic Bezier chain with one segment per edge."""
-
-    pts = polyline.points
-    tangents = np.empty_like(pts)
-    tangents[0] = pts[1] - pts[0]
-    tangents[-1] = pts[-1] - pts[-2]
-    tangents[1:-1] = 0.5 * (pts[2:] - pts[:-2])
-
-    segments = np.empty((pts.shape[0] - 1, 4, 3), dtype=np.float64)
-    for i in range(pts.shape[0] - 1):
-        p0 = pts[i]
-        p1 = pts[i + 1]
-        ds = float(np.linalg.norm(p1 - p0))
-
-        tangent0_norm = float(np.linalg.norm(tangents[i]))
-        tangent1_norm = float(np.linalg.norm(tangents[i + 1]))
-        if ds == 0.0 or tangent0_norm == 0.0 or tangent1_norm == 0.0:
-            t0 = np.zeros(3, dtype=np.float64)
-            t1 = np.zeros(3, dtype=np.float64)
-        else:
-            t0 = tangents[i] / tangent0_norm
-            t1 = tangents[i + 1] / tangent1_norm
-
-        segments[i, 0, :] = p0
-        segments[i, 1, :] = p0 + (ds / 3.0) * t0
-        segments[i, 2, :] = p1 - (ds / 3.0) * t1
-        segments[i, 3, :] = p1
-
-    return PiecewiseBezier(segments=segments)
-
 
 def sample_cubic_bezier_chain(beziers: PiecewiseBezier, num_samples: int) -> Polyline:
     """Sample points from a cubic Bezier chain."""
