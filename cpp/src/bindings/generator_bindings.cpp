@@ -21,16 +21,22 @@ namespace {
     return output;
 }
 
-[[nodiscard]] py::object piecewise_hermite_generator_py() {
-    const autorigami::PiecewiseHermiteData generated = autorigami::piecewise_hermite_generator();
+[[nodiscard]] py::tuple piecewise_hermite_generator_py() {
+    const autorigami::PiecewiseHermiteGeneratorResult generated = autorigami::piecewise_hermite_generator();
 
     py::module_ parametrization_module = py::module_::import("autorigami.parametrization");
     py::object piecewise_hermite_class = parametrization_module.attr("PiecewiseHermite");
 
     py::dict kwargs;
-    kwargs["points"] = vec3_vector_to_numpy(generated.points);
-    kwargs["tangents"] = vec3_vector_to_numpy(generated.tangents);
-    return piecewise_hermite_class(**kwargs);
+    kwargs["points"] = vec3_vector_to_numpy(generated.piecewise_hermite.points);
+    kwargs["tangents"] = vec3_vector_to_numpy(generated.piecewise_hermite.tangents);
+
+    py::dict run_data;
+    run_data["cpp_point_count"] = generated.run_data.point_count;
+    run_data["cpp_segment_count"] = generated.run_data.segment_count;
+    run_data["cpp_parameter_step"] = generated.run_data.parameter_step;
+
+    return py::make_tuple(piecewise_hermite_class(**kwargs), run_data);
 }
 
 }  // namespace

@@ -34,12 +34,15 @@ def test_validate_piecewise_curve_curvature_accepts_straight_segments() -> None:
 
 
 def test_piecewise_hermite_generator_returns_dataclass() -> None:
-    generated = piecewise_hermite_generator()
+    generated, run_data = piecewise_hermite_generator()
 
     assert isinstance(generated, PiecewiseHermite)
     assert generated.points.shape == generated.tangents.shape
     assert generated.points.shape[0] >= 2
     assert generated.points.shape[1] == 3
+    assert run_data["cpp_point_count"] == generated.points.shape[0]
+    assert run_data["cpp_segment_count"] == generated.points.shape[0] - 1
+    assert run_data["cpp_parameter_step"] == 1.0
     assert validate_piecewise_curve_curvature(
         piecewise_hermite=generated,
         max_curvature=100.0,

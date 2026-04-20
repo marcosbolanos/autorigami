@@ -30,7 +30,7 @@ def main() -> None:
     axis_direction, axis_origin, axis_source = resolve_axis(mesh, args)
 
     if args.generator == "piecewise_hermite":
-        piecewise_hermite = piecewise_hermite_generator()
+        piecewise_hermite, generator_run_data = piecewise_hermite_generator()
     else:  # we have room to add other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")
 
@@ -70,6 +70,7 @@ def main() -> None:
             "curvature_valid": curvature_validation,
         },
     }
+    run_info |= generator_run_data
     metadata_path = output_dir / "run_info.json"
     metadata_path.write_text(json.dumps(run_info, indent=2) + "\n", encoding="utf-8")
 

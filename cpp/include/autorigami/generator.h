@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 #include "autorigami/vec3.h"
@@ -11,6 +12,17 @@ struct PiecewiseHermiteData {
     std::vector<Vec3> tangents;
 };
 
-[[nodiscard]] PiecewiseHermiteData piecewise_hermite_generator();
+struct PiecewiseHermiteGeneratorRunData {
+    std::size_t point_count;
+    std::size_t segment_count;
+    double parameter_step;
+};
+
+struct PiecewiseHermiteGeneratorResult {
+    PiecewiseHermiteData piecewise_hermite;
+    PiecewiseHermiteGeneratorRunData run_data;
+};
+
+[[nodiscard]] PiecewiseHermiteGeneratorResult piecewise_hermite_generator();
 
 }  // namespace autorigami
