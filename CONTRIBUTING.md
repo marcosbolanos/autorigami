@@ -14,7 +14,7 @@ Refresh the editable install whenever you add, delete, or rename Python package 
 uv pip install --python .venv/bin/python -e . --reinstall
 ```
 
-## Native development
+## Native C++ development
 
 Rebuild the native extension when you change files under `cpp/`:
 
@@ -34,19 +34,7 @@ cpp/tests/...
 
 ## Testing
 
-Run native C++ tests with CTest:
-
-```bash
-ctest --test-dir .cmake-build/native --output-on-failure
-```
-
-Run Python tests with pytest:
-
-```bash
-./.venv/bin/python -m pytest
-```
-
-Recommended workflow after changing native code:
+We use pytest for python test and ctest for C++ tests
 
 ```bash
 ./scripts/build_native.sh
@@ -55,3 +43,9 @@ ctest --test-dir .cmake-build/native --output-on-failure
 ```
 
 If you only changed Python code, skip the native rebuild and just run pytest.
+
+## Linting
+
+```bash
+uv run ruff format
+```
