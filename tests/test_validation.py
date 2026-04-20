@@ -2,8 +2,34 @@ from __future__ import annotations
 
 import numpy as np
 
-from autorigami._native import piecewise_hermite_generator, validate_piecewise_curve_curvature
+from autorigami._native import (
+    convert_trimesh_to_manifold_surface_mesh,
+    piecewise_hermite_generator,
+    validate_piecewise_curve_curvature,
+)
 from autorigami.parametrization import PiecewiseHermite
+
+
+def _sample_trimesh_arrays() -> tuple[np.ndarray, np.ndarray]:
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=np.float64,
+    )
+    faces = np.array(
+        [
+            [0, 2, 1],
+            [0, 1, 3],
+            [1, 2, 3],
+            [2, 0, 3],
+        ],
+        dtype=np.int64,
+    )
+    return vertices, faces
 
 
 def test_validate_piecewise_curve_curvature_accepts_straight_segments() -> None:
@@ -34,7 +60,8 @@ def test_validate_piecewise_curve_curvature_accepts_straight_segments() -> None:
 
 
 def test_piecewise_hermite_generator_returns_dataclass() -> None:
-    generated, run_data = piecewise_hermite_generator()
+    vertices, faces = _sample_trimesh_arrays()
+    generated, run_data = piecewise_hermite_generator(vertices, faces)
 
     assert isinstance(generated, PiecewiseHermite)
     assert generated.points.shape == generated.tangents.shape
@@ -43,8 +70,18 @@ def test_piecewise_hermite_generator_returns_dataclass() -> None:
     assert run_data["cpp_point_count"] == generated.points.shape[0]
     assert run_data["cpp_segment_count"] == generated.points.shape[0] - 1
     assert run_data["cpp_parameter_step"] == 1.0
+    assert run_data["input_mesh_vertex_count"] == int(vertices.shape[0])
+    assert run_data["input_mesh_face_count"] == int(faces.shape[0])
     assert validate_piecewise_curve_curvature(
         piecewise_hermite=generated,
         max_curvature=100.0,
         curvature_tolerance=1e-6,
     )
+
+
+def test_convert_trimesh_to_manifold_surface_mesh() -> None:
+    vertices, faces = _sample_trimesh_arrays()
+    info = convert_trimesh_to_manifold_surface_mesh(vertices, faces)
+
+    assert info["vertex_count"] == int(vertices.shape[0])
+    assert info["face_count"] == int(faces.shape[0])

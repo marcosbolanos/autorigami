@@ -4,6 +4,7 @@ set(FETCHCONTENT_QUIET OFF)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 set(BUILD_TESTING OFF CACHE BOOL "Disable third-party dependency tests" FORCE)
 set(EIGEN_BUILD_TESTING OFF CACHE BOOL "Disable Eigen tests" FORCE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Build dependencies as PIC for shared modules" FORCE)
 
 set(AUTORIGAMI_EIGEN_VERSION "3.4.0")
 set(AUTORIGAMI_EIGEN_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz")
@@ -50,3 +51,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(geometry_central)
+
+if(TARGET geometry-central)
+    set_target_properties(geometry-central PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import shutil
 
+import numpy as np
 import trimesh
 
 from autorigami.mesh_io import (
@@ -28,9 +29,11 @@ def main() -> None:
         raise ValueError("Input mesh must be .obj or .stl")
     mesh = trimesh.load_mesh(input_path, force="mesh")
     axis_direction, axis_origin, axis_source = resolve_axis(mesh, args)
+    vertices = np.asarray(mesh.vertices, dtype=np.float64)
+    faces = np.asarray(mesh.faces, dtype=np.int64)
 
     if args.generator == "piecewise_hermite":
-        piecewise_hermite, generator_run_data = piecewise_hermite_generator()
+        piecewise_hermite, generator_run_data = piecewise_hermite_generator(vertices, faces)
     else:  # we have room to add other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")
 
