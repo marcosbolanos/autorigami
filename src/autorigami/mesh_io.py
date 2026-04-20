@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import trimesh
+from autorigami.parametrization import Polyline
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -141,20 +142,22 @@ def save_polyline_csv(polyline: np.ndarray, output_path: Path) -> None:
     np.savetxt(output_path, polyline, delimiter=",", header=header, comments="")
 
 
-def save_polyline_obj(polyline: np.ndarray, output_path: Path) -> None:
-    if polyline.shape[0] < 2:
+def save_polyline_obj(polyline: Polyline, output_path: Path) -> None:
+    points = polyline.points
+    if points.shape[0] < 2:
         raise ValueError("Polyline must contain at least 2 points.")
 
     lines: list[str] = []
-    for x, y, z in polyline:
+    for x, y, z in points:
         lines.append(f"v {x:.9g} {y:.9g} {z:.9g}")
-    indices = " ".join(str(i) for i in range(1, polyline.shape[0] + 1))
+    indices = " ".join(str(i) for i in range(1, points.shape[0] + 1))
     lines.append(f"l {indices}")
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def save_overlay_obj(mesh: trimesh.Trimesh, polyline: np.ndarray, output_obj_path: Path) -> None:
-    if polyline.shape[0] < 2:
+def save_overlay_obj(mesh: trimesh.Trimesh, polyline: Polyline, output_obj_path: Path) -> None:
+    points = polyline.points
+    if points.shape[0] < 2:
         raise ValueError("Polyline must contain at least 2 points.")
 
     output_mtl_path = output_obj_path.with_suffix(".mtl")
@@ -198,9 +201,9 @@ def save_overlay_obj(mesh: trimesh.Trimesh, polyline: np.ndarray, output_obj_pat
     lines.append("o spiral_polyline")
     lines.append("usemtl spiral_line")
     vertex_offset = int(vertices.shape[0])
-    for x, y, z in polyline:
+    for x, y, z in points:
         lines.append(f"v {x:.9g} {y:.9g} {z:.9g}")
-    indices = " ".join(str(vertex_offset + i) for i in range(1, polyline.shape[0] + 1))
+    indices = " ".join(str(vertex_offset + i) for i in range(1, points.shape[0] + 1))
     lines.append(f"l {indices}")
 
     output_obj_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
