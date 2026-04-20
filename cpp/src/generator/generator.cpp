@@ -4,11 +4,15 @@
 namespace autorigami {
 
 PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
-    const geometrycentral::surface::ManifoldSurfaceMesh& mesh,
-    const geometrycentral::surface::VertexPositionGeometry& geometry,
+    geometrycentral::surface::ManifoldSurfaceMesh& mesh,
+    geometrycentral::surface::VertexPositionGeometry& geometry,
     const Vec3& axis
 ) {
-    const Vec3 seed_point = initialize_surface_seed_point(mesh, geometry, axis);
+    const geometrycentral::surface::SurfacePoint seed_point_on_surface =
+        initialize_surface_seed_point(mesh, geometry, axis);
+    const geometrycentral::Vector3 seed_position =
+        seed_point_on_surface.interpolate(geometry.inputVertexPositions);
+    const Vec3 seed_point = {.x = seed_position.x, .y = seed_position.y, .z = seed_position.z};
 
     const PiecewiseHermiteData piecewise_hermite = {
         .points = {

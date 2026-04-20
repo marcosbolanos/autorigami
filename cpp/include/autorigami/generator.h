@@ -26,8 +26,8 @@ struct PiecewiseHermiteGeneratorResult {
 };
 
 [[nodiscard]] PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
-    const geometrycentral::surface::ManifoldSurfaceMesh& mesh,
-    const geometrycentral::surface::VertexPositionGeometry& geometry,
+    geometrycentral::surface::ManifoldSurfaceMesh& mesh,
+    geometrycentral::surface::VertexPositionGeometry& geometry,
     const Vec3& axis
 );
 
