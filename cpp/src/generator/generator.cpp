@@ -1,4 +1,5 @@
 #include "autorigami/generator.h"
+#include "autorigami/generator/optimize_end_of_spline.h"
 #include "autorigami/generator/seed_point.h"
 
 namespace autorigami {
@@ -12,21 +13,18 @@ PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
         initialize_surface_seed_point(mesh, geometry, axis);
     const geometrycentral::Vector3 seed_point =
         seed_point_on_surface.interpolate(geometry.inputVertexPositions);
-
-    const PiecewiseHermiteData piecewise_hermite = {
-        .points = {
-            seed_point,
-            {1.0, 0.4, -0.2},
-            {2.1, -0.3, 0.6},
-            {3.0, 0.1, 1.0},
-        },
-        .tangents = {
-            {0.8, 0.2, -0.1},
-            {0.9, -0.5, 0.4},
-            {0.7, 0.6, 0.3},
-            {0.5, 0.2, 0.4},
-        },
-    };
+    PiecewiseHermiteData piecewise_hermite = bootstrap_from_seed(seed_point, axis);
+    constexpr int outer_iterations = 4;
+    constexpr double max_curvature = 1e6;
+    constexpr double curvature_tolerance = 0.0;
+    for (int iteration = 0; iteration < outer_iterations; ++iteration) {
+        piecewise_hermite = optimize_end_of_spline(
+            piecewise_hermite,
+            axis,
+            max_curvature,
+            curvature_tolerance
+        );
+    }
 
     return PiecewiseHermiteGeneratorResult{
         .piecewise_hermite = piecewise_hermite,

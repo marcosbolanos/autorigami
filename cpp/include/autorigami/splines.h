@@ -76,5 +76,4 @@ class PiecewiseCubicHermiteSpline {
   private:
     std::vector<CubicHermiteSegment> segments_;
 };
-
 }  // namespace autorigami
