@@ -25,11 +25,11 @@ struct ConvertedManifoldMesh {
     std::unique_ptr<VertexPositionGeometry> geometry;
 };
 
-[[nodiscard]] py::array_t<double> vec3_vector_to_numpy(const std::vector<autorigami::Vec3>& values) {
+[[nodiscard]] py::array_t<double> vec3_vector_to_numpy(const std::vector<geometrycentral::Vector3>& values) {
     py::array_t<double> output({static_cast<py::ssize_t>(values.size()), py::ssize_t{3}});
     auto mutable_view = output.mutable_unchecked<2>();
     for (std::size_t row = 0; row < values.size(); ++row) {
-        const autorigami::Vec3& value = values[row];
+        const geometrycentral::Vector3& value = values[row];
         mutable_view(static_cast<py::ssize_t>(row), 0) = value.x;
         mutable_view(static_cast<py::ssize_t>(row), 1) = value.y;
         mutable_view(static_cast<py::ssize_t>(row), 2) = value.z;
@@ -54,7 +54,7 @@ struct ConvertedManifoldMesh {
     return output;
 }
 
-[[nodiscard]] autorigami::Vec3 load_vec3(
+[[nodiscard]] geometrycentral::Vector3 load_vec3(
     const py::array_t<double, py::array::c_style | py::array::forcecast>& values,
     const char* argument_name
 ) {
@@ -63,7 +63,7 @@ struct ConvertedManifoldMesh {
     }
 
     const auto view = values.unchecked<1>();
-    return {.x = view(0), .y = view(1), .z = view(2)};
+    return {view(0), view(1), view(2)};
 }
 
 [[nodiscard]] std::vector<std::vector<std::size_t>> load_triangle_faces(

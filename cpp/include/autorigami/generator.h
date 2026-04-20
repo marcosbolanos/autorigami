@@ -3,20 +3,20 @@
 #include <cstddef>
 #include <vector>
 
-#include "autorigami/vec3.h"
 #include "geometrycentral/surface/manifold_surface_mesh.h"
 #include "geometrycentral/surface/vertex_position_geometry.h"
+#include "geometrycentral/utilities/vector3.h"
 
 namespace autorigami {
 
 struct PiecewiseHermiteData {
-    std::vector<Vec3> points;
-    std::vector<Vec3> tangents;
+    std::vector<geometrycentral::Vector3> points;
+    std::vector<geometrycentral::Vector3> tangents;
 };
 
 struct GeneratorAxis {
-    Vec3 origin;
-    Vec3 direction;
+    geometrycentral::Vector3 origin;
+    geometrycentral::Vector3 direction;
 };
 
 struct PiecewiseHermiteGeneratorRunData {

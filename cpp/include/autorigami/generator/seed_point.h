@@ -1,6 +1,5 @@
 #pragma once
 
-#include "autorigami/vec3.h"
 #include "autorigami/generator.h"
 #include "geometrycentral/surface/manifold_surface_mesh.h"
 #include "geometrycentral/surface/surface_point.h"
