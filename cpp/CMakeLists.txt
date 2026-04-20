@@ -8,7 +8,9 @@ pybind11_add_module(
     _native
     MODULE
     src/bindings/module.cpp
+    src/bindings/generator_bindings.cpp
     src/bindings/validation_bindings.cpp
+    src/generator/generator.cpp
     src/splines/splines.cpp
     src/validation/validation.cpp
     src/curvature/curvature_math.cpp

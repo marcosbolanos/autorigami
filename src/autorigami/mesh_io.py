@@ -18,8 +18,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--generator",
-        default="simple_spiral",
-        choices=["simple_spiral", "ode"],
+        default="piecewise_hermite",
+        choices=["piecewise_hermite", "simple_spiral", "ode"],
         help="Spiral generation algorithm.",
     )
     parser.add_argument("--turns", type=float, default=10.0, help="Number of spiral turns.")

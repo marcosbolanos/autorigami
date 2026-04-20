@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 import shutil
 
-from numpy import piecewise
 import trimesh
 
 from autorigami.mesh_io import (
@@ -15,12 +14,10 @@ from autorigami.mesh_io import (
     timestamped_output_dir,
 )
 from autorigami.parametrization import (
-    PiecewiseHermite,
     piecewise_hermite_to_bezier,
-    polyline_to_cubic_bezier_chain,
     sample_cubic_bezier_chain,
 )
-from autorigami._native import validate_piecewise_curve_curvature
+from autorigami._native import piecewise_hermite_generator, validate_piecewise_curve_curvature
 
 
 def main() -> None:
@@ -33,13 +30,13 @@ def main() -> None:
     axis_direction, axis_origin, axis_source = resolve_axis(mesh, args)
 
     if args.generator == "piecewise_hermite":
-        piecewise_hermite = new PiecewiseHermite()
+        piecewise_hermite = piecewise_hermite_generator()
     else:  # we have room to add other generators here
         raise ValueError(f"Unsupported generator: {args.generator}")
 
     # Fast cpp validation function which handles piecewise hermite curves
     curvature_validation = validate_piecewise_curve_curvature(
-        segments=piecewise_hermite,
+        piecewise_hermite=piecewise_hermite,
         max_curvature=args.world_to_nm / args.min_curvature_radius_nm,
         curvature_tolerance=args.world_to_nm * 0.1 / (args.min_curvature_radius_nm**2),
     )
