@@ -55,3 +55,15 @@ FetchContent_MakeAvailable(geometry_central)
 if(TARGET geometry-central)
     set_target_properties(geometry-central PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
+
+if(NOT TARGET LBFGSpp::LBFGSpp)
+    add_library(autorigami_lbfgspp INTERFACE)
+    add_library(LBFGSpp::LBFGSpp ALIAS autorigami_lbfgspp)
+    target_include_directories(
+        autorigami_lbfgspp
+        SYSTEM
+        INTERFACE
+        "${CMAKE_CURRENT_LIST_DIR}/../third_party/LBFGSpp/include"
+    )
+    target_link_libraries(autorigami_lbfgspp INTERFACE Eigen3::Eigen)
+endif()

@@ -17,13 +17,14 @@ pybind11_add_module(
     src/generator/optimize_end_of_spline.cpp
     src/generator/seed_point.cpp
     src/splines/splines.cpp
+    src/validation/nonlocal_distance.cpp
     src/validation/validation.cpp
     src/curvature/curvature_math.cpp
 )
 
 target_compile_features(_native PRIVATE cxx_std_20)
 target_include_directories(_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(_native PRIVATE geometry-central)
+target_link_libraries(_native PRIVATE geometry-central LBFGSpp::LBFGSpp)
 if(AUTORIGAMI_DEV_LINT)
     set_property(TARGET _native PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
 endif()
@@ -41,12 +42,27 @@ if(AUTORIGAMI_BUILD_TESTS)
 
     target_compile_features(autorigami_validation_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_validation_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(autorigami_validation_tests PRIVATE geometry-central)
+    target_link_libraries(autorigami_validation_tests PRIVATE geometry-central LBFGSpp::LBFGSpp)
     if(AUTORIGAMI_DEV_LINT)
         set_property(TARGET autorigami_validation_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
     endif()
 
     add_test(NAME autorigami_validation_tests COMMAND autorigami_validation_tests)
+
+    add_executable(
+        autorigami_nonlocal_distance_tests
+        tests/validation/nonlocal_distance_test.cpp
+        src/validation/nonlocal_distance.cpp
+    )
+
+    target_compile_features(autorigami_nonlocal_distance_tests PRIVATE cxx_std_20)
+    target_include_directories(autorigami_nonlocal_distance_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(autorigami_nonlocal_distance_tests PRIVATE geometry-central LBFGSpp::LBFGSpp)
+    if(AUTORIGAMI_DEV_LINT)
+        set_property(TARGET autorigami_nonlocal_distance_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
+    endif()
+
+    add_test(NAME autorigami_nonlocal_distance_tests COMMAND autorigami_nonlocal_distance_tests)
 
     add_executable(
         autorigami_splines_tests
@@ -56,7 +72,7 @@ if(AUTORIGAMI_BUILD_TESTS)
 
     target_compile_features(autorigami_splines_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_splines_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(autorigami_splines_tests PRIVATE geometry-central)
+    target_link_libraries(autorigami_splines_tests PRIVATE geometry-central LBFGSpp::LBFGSpp)
     if(AUTORIGAMI_DEV_LINT)
         set_property(TARGET autorigami_splines_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
     endif()
@@ -71,7 +87,7 @@ if(AUTORIGAMI_BUILD_TESTS)
 
     target_compile_features(autorigami_generator_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_generator_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(autorigami_generator_tests PRIVATE geometry-central)
+    target_link_libraries(autorigami_generator_tests PRIVATE geometry-central LBFGSpp::LBFGSpp)
 
     add_test(NAME autorigami_generator_tests COMMAND autorigami_generator_tests)
 
@@ -84,7 +100,7 @@ if(AUTORIGAMI_BUILD_TESTS)
 
     target_compile_features(autorigami_curvature_math_tests PRIVATE cxx_std_20)
     target_include_directories(autorigami_curvature_math_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(autorigami_curvature_math_tests PRIVATE geometry-central)
+    target_link_libraries(autorigami_curvature_math_tests PRIVATE geometry-central LBFGSpp::LBFGSpp)
     if(AUTORIGAMI_DEV_LINT)
         set_property(TARGET autorigami_curvature_math_tests PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
     endif()

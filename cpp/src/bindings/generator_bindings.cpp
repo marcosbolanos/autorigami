@@ -130,7 +130,13 @@ struct ConvertedManifoldMesh {
     const py::array_t<double, py::array::c_style | py::array::forcecast>& vertices,
     const py::array_t<std::int64_t, py::array::c_style | py::array::forcecast>& faces,
     const py::array_t<double, py::array::c_style | py::array::forcecast>& axis_origin,
-    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis_direction
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& axis_direction,
+    double spacing_world,
+    double nonlocal_window_world,
+    double max_curvature,
+    double curvature_tolerance,
+    double extension_step_world,
+    int outer_iterations
 ) {
     ConvertedManifoldMesh converted = convert_trimesh_to_manifold_surface_mesh(vertices, faces);
     const autorigami::GeneratorAxis axis{
@@ -140,7 +146,13 @@ struct ConvertedManifoldMesh {
     const autorigami::PiecewiseHermiteGeneratorResult generated = autorigami::piecewise_hermite_generator(
         *converted.mesh,
         *converted.geometry,
-        axis
+        axis,
+        spacing_world,
+        nonlocal_window_world,
+        max_curvature,
+        curvature_tolerance,
+        extension_step_world,
+        outer_iterations
     );
 
     py::module_ parametrization_module = py::module_::import("autorigami.parametrization");
@@ -162,6 +174,12 @@ struct ConvertedManifoldMesh {
     run_data["input_axis_direction_x"] = axis.direction.x;
     run_data["input_axis_direction_y"] = axis.direction.y;
     run_data["input_axis_direction_z"] = axis.direction.z;
+    run_data["input_spacing_world"] = spacing_world;
+    run_data["input_nonlocal_window_world"] = nonlocal_window_world;
+    run_data["input_max_curvature"] = max_curvature;
+    run_data["input_curvature_tolerance"] = curvature_tolerance;
+    run_data["input_extension_step_world"] = extension_step_world;
+    run_data["input_outer_iterations"] = outer_iterations;
 
     return py::make_tuple(piecewise_hermite_class(**kwargs), run_data);
 }
@@ -181,6 +199,12 @@ void register_generator_bindings(py::module_& module) {
         py::arg("vertices"),
         py::arg("faces"),
         py::arg("axis_origin"),
-        py::arg("axis_direction")
+        py::arg("axis_direction"),
+        py::arg("spacing_world") = 2.6,
+        py::arg("nonlocal_window_world") = 4.1,
+        py::arg("max_curvature") = 1e6,
+        py::arg("curvature_tolerance") = 0.0,
+        py::arg("extension_step_world") = 0.5,
+        py::arg("outer_iterations") = 4
     );
 }

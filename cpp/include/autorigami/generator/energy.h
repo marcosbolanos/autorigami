@@ -6,7 +6,8 @@ namespace autorigami {
 
 [[nodiscard]] double evaluate_end_of_spline_energy(
     const PiecewiseHermiteData& spline,
-    const GeneratorAxis& axis
+    double max_curvature,
+    double curvature_tolerance
 );
 
 }  // namespace autorigami

@@ -1,11 +1,13 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
+#include <cmath>
 #include <cstddef>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
+#include "autorigami/validation/nonlocal_distance.h"
 #include "autorigami/validation.h"
 
 namespace py = pybind11;
@@ -69,6 +71,34 @@ bool validate_piecewise_curve_curvature_py(
     );
 }
 
+autorigami::NonlocalDistanceValidationResult validate_polyline_nonlocal_distance_py(
+    const py::array_t<double, py::array::c_style | py::array::forcecast>& points,
+    double minimum_separation,
+    double nonlocal_window,
+    bool stop_on_first_violation
+) {
+    if (points.ndim() != 2 || points.shape(1) != 3) {
+        throw std::invalid_argument("points must have shape (N, 3)");
+    }
+    if (points.shape(0) < 2) {
+        throw std::invalid_argument("points must have at least 2 rows");
+    }
+
+    std::vector<autorigami::Vec3> loaded_points;
+    loaded_points.reserve(static_cast<std::size_t>(points.shape(0)));
+    const auto view = points.unchecked<2>();
+    for (py::ssize_t row = 0; row < points.shape(0); ++row) {
+        loaded_points.push_back(load_vec3_row(view, row));
+    }
+
+    return autorigami::validate_polyline_nonlocal_distance(
+        loaded_points,
+        minimum_separation,
+        nonlocal_window,
+        stop_on_first_violation
+    );
+}
+
 }  // namespace
 
 void register_validation_bindings(py::module_& module) {
@@ -78,5 +108,28 @@ void register_validation_bindings(py::module_& module) {
         py::arg("piecewise_hermite"),
         py::arg("max_curvature"),
         py::arg("curvature_tolerance")
+    );
+    module.def(
+        "validate_polyline_nonlocal_distance",
+        [](const py::array_t<double, py::array::c_style | py::array::forcecast>& points,
+           double minimum_separation,
+           double nonlocal_window,
+           bool stop_on_first_violation) {
+            const autorigami::NonlocalDistanceValidationResult result =
+                validate_polyline_nonlocal_distance_py(
+                    points,
+                    minimum_separation,
+                    nonlocal_window,
+                    stop_on_first_violation
+                );
+            py::dict out;
+            out["violation_count"] = result.violation_count;
+            out["minimum_checked_distance"] = result.minimum_checked_distance;
+            return out;
+        },
+        py::arg("points"),
+        py::arg("minimum_separation"),
+        py::arg("nonlocal_window"),
+        py::arg("stop_on_first_violation") = false
     );
 }

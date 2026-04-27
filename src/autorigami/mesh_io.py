@@ -49,6 +49,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Target spiral self-separation in nanometers.",
     )
     parser.add_argument(
+        "--generator-step-nm",
+        type=float,
+        default=10.0,
+        help="Target advancement per extension step for piecewise Hermite generator (nm).",
+    )
+    parser.add_argument(
+        "--generator-rounds",
+        type=int,
+        default=64,
+        help="Number of outer extension rounds for piecewise Hermite generator.",
+    )
+    parser.add_argument(
         "--min-curvature-radius-nm",
         type=float,
         default=6.0,

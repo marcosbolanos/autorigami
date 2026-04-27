@@ -33,7 +33,13 @@ struct PiecewiseHermiteGeneratorResult {
 [[nodiscard]] PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
     geometrycentral::surface::ManifoldSurfaceMesh& mesh,
     geometrycentral::surface::VertexPositionGeometry& geometry,
-    const GeneratorAxis& axis
+    const GeneratorAxis& axis,
+    double spacing_world,
+    double nonlocal_window_world,
+    double max_curvature,
+    double curvature_tolerance,
+    double extension_step_world,
+    int outer_iterations
 );
 
 }  // namespace autorigami
