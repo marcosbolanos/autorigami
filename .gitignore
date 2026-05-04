@@ -1,6 +1,9 @@
 # Project outputs
 outputs/
 
+# Local files
+local/
+
 # Python
 __pycache__/
 **/__pycache__/

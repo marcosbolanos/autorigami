@@ -1,0 +1,3246 @@
+{
+  "input": "assets/ellipsoid.obj",
+  "axis_source": "bbox:x",
+  "axis_direction": [
+    1.0,
+    0.0,
+    0.0
+  ],
+  "axis_origin": [
+    3.172065784643304e-17,
+    0.0,
+    0.0
+  ],
+  "trace": {
+    "steps": [
+      {
+        "step_index": 0,
+        "initialized_target": [
+          -1.5,
+          0.0,
+          -0.13
+        ],
+        "candidates": [
+          {
+            "seed_index": 83741,
+            "face_index": 1860,
+            "position": [
+              -1.4811926325,
+              0.0,
+              -0.123991865
+            ],
+            "energy": 0.12323177154721661,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003118518067666251,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50672,
+            "face_index": 1126,
+            "position": [
+              -1.4811926325,
+              0.0,
+              -0.123991865
+            ],
+            "energy": 0.12323177154721661,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003118518067666251,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83738,
+            "face_index": 1860,
+            "position": [
+              -1.4789597887500001,
+              0.0,
+              -0.1308069025
+            ],
+            "energy": 0.12365998612826339,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0035467326487130238,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50673,
+            "face_index": 1126,
+            "position": [
+              -1.4789597887500001,
+              0.0,
+              -0.1308069025
+            ],
+            "energy": 0.12365998612826339,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0035467326487130238,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83743,
+            "face_index": 1860,
+            "position": [
+              -1.4834254762499999,
+              0.0,
+              -0.1171768275
+            ],
+            "energy": 0.12362644220358296,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003513188724032598,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50671,
+            "face_index": 1126,
+            "position": [
+              -1.4834254762499999,
+              0.0,
+              -0.1171768275
+            ],
+            "energy": 0.12362644220358296,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003513188724032598,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50680,
+            "face_index": 1126,
+            "position": [
+              -1.4817462750000001,
+              0.00832555,
+              -0.12134119625
+            ],
+            "energy": 0.12393315861202345,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0038199051324730796,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83740,
+            "face_index": 1860,
+            "position": [
+              -1.4817462750000001,
+              -0.00832555,
+              -0.12134119624999999
+            ],
+            "energy": 0.12393315861202345,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003819905132473081,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83737,
+            "face_index": 1860,
+            "position": [
+              -1.47951343125,
+              -0.00832555,
+              -0.12815623375000001
+            ],
+            "energy": 0.12405256352703528,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003939310047484922,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50681,
+            "face_index": 1126,
+            "position": [
+              -1.47951343125,
+              0.00832555,
+              -0.12815623375000001
+            ],
+            "energy": 0.12405256352703528,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.003939310047484922,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84103,
+            "face_index": 1868,
+            "position": [
+              -1.48397911875,
+              -0.00832555,
+              -0.11452615875
+            ],
+            "energy": 0.1246366389344248,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004523385454874429,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83742,
+            "face_index": 1860,
+            "position": [
+              -1.48397911875,
+              -0.00832555,
+              -0.11452615875
+            ],
+            "energy": 0.1246366389344248,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004523385454874429,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50679,
+            "face_index": 1126,
+            "position": [
+              -1.48397911875,
+              0.00832555,
+              -0.11452615875
+            ],
+            "energy": 0.1246366389344248,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004523385454874429,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51001,
+            "face_index": 1133,
+            "position": [
+              -1.48397911875,
+              0.00832555,
+              -0.11452615875
+            ],
+            "energy": 0.1246366389344248,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004523385454874429,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50682,
+            "face_index": 1126,
+            "position": [
+              -1.4772805875000001,
+              0.00832555,
+              -0.13497127125
+            ],
+            "energy": 0.12499485367946017,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004881600199909814,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83733,
+            "face_index": 1860,
+            "position": [
+              -1.4772805875000001,
+              -0.00832555,
+              -0.13497127125000002
+            ],
+            "energy": 0.12499485367946017,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004881600199909818,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50674,
+            "face_index": 1126,
+            "position": [
+              -1.476726945,
+              0.0,
+              -0.13762194
+            ],
+            "energy": 0.12491108594672336,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004797832467172994,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83734,
+            "face_index": 1860,
+            "position": [
+              -1.476726945,
+              0.0,
+              -0.13762194
+            ],
+            "energy": 0.12491108594672336,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004797832467172994,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83744,
+            "face_index": 1860,
+            "position": [
+              -1.48565832,
+              0.0,
+              -0.11036179
+            ],
+            "energy": 0.12484399809736237,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004730744617812007,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84104,
+            "face_index": 1868,
+            "position": [
+              -1.48565832,
+              0.0,
+              -0.11036179
+            ],
+            "energy": 0.12484399809736237,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004730744617812007,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50813,
+            "face_index": 1129,
+            "position": [
+              -1.48565832,
+              0.0,
+              -0.11036179
+            ],
+            "energy": 0.12484399809736237,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004730744617812007,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83573,
+            "face_index": 1857,
+            "position": [
+              -1.48565832,
+              0.0,
+              -0.11036179
+            ],
+            "energy": 0.12484399809736237,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004730744617812007,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50993,
+            "face_index": 1133,
+            "position": [
+              -1.48565832,
+              0.0,
+              -0.11036179
+            ],
+            "energy": 0.12484399809736237,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004730744617812007,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50670,
+            "face_index": 1126,
+            "position": [
+              -1.48565832,
+              0.0,
+              -0.11036179
+            ],
+            "energy": 0.12484399809736237,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.004730744617812007,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50688,
+            "face_index": 1126,
+            "position": [
+              -1.48006707375,
+              0.0166511,
+              -0.12550556499999999
+            ],
+            "energy": 0.1256714984880877,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0055582450085373426,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83736,
+            "face_index": 1860,
+            "position": [
+              -1.48006707375,
+              -0.0166511,
+              -0.12550556499999999
+            ],
+            "energy": 0.1256714984880877,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0055582450085373426,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84101,
+            "face_index": 1868,
+            "position": [
+              -1.4822999175,
+              -0.0166511,
+              -0.1186905275
+            ],
+            "energy": 0.12586090323911087,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0057476497595604975,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83739,
+            "face_index": 1860,
+            "position": [
+              -1.4822999175,
+              -0.0166511,
+              -0.1186905275
+            ],
+            "energy": 0.12586090323911087,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0057476497595604975,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50687,
+            "face_index": 1126,
+            "position": [
+              -1.4822999175,
+              0.0166511,
+              -0.1186905275
+            ],
+            "energy": 0.12586090323911087,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0057476497595604975,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51008,
+            "face_index": 1133,
+            "position": [
+              -1.4822999175,
+              0.0166511,
+              -0.1186905275
+            ],
+            "energy": 0.12586090323911087,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0057476497595604975,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50689,
+            "face_index": 1126,
+            "position": [
+              -1.47783423,
+              0.0166511,
+              -0.1323206025
+            ],
+            "energy": 0.1263049789744776,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006191725494927241,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83732,
+            "face_index": 1860,
+            "position": [
+              -1.47783423,
+              -0.0166511,
+              -0.1323206025
+            ],
+            "energy": 0.1263049789744776,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006191725494927241,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84102,
+            "face_index": 1868,
+            "position": [
+              -1.48588496,
+              -0.0083386725,
+              -0.107605065
+            ],
+            "energy": 0.12627566089489503,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006162407415344672,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50992,
+            "face_index": 1133,
+            "position": [
+              -1.48588496,
+              0.0083386725,
+              -0.107605065
+            ],
+            "energy": 0.12627566089489503,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006162407415344672,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83572,
+            "face_index": 1857,
+            "position": [
+              -1.48588496,
+              -0.0083386725,
+              -0.107605065
+            ],
+            "energy": 0.12627566089489503,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006162407415344672,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50821,
+            "face_index": 1129,
+            "position": [
+              -1.48588496,
+              0.0083386725,
+              -0.107605065
+            ],
+            "energy": 0.12627566089489503,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006162407415344672,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83728,
+            "face_index": 1860,
+            "position": [
+              -1.47504774375,
+              -0.00832555,
+              -0.14178630875
+            ],
+            "energy": 0.12676002906929829,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006646775589747915,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50683,
+            "face_index": 1126,
+            "position": [
+              -1.47504774375,
+              0.00832555,
+              -0.14178630875
+            ],
+            "energy": 0.12676002906929829,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006646775589747915,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50812,
+            "face_index": 1129,
+            "position": [
+              -1.48700231625,
+              0.0,
+              -0.103480725
+            ],
+            "energy": 0.1270909473146755,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0069776938351251375,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83581,
+            "face_index": 1857,
+            "position": [
+              -1.48700231625,
+              0.0,
+              -0.103480725
+            ],
+            "energy": 0.1270909473146755,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.0069776938351251375,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83729,
+            "face_index": 1860,
+            "position": [
+              -1.47449410125,
+              0.0,
+              -0.1444369775
+            ],
+            "energy": 0.12698507100259646,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006871817523046098,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50675,
+            "face_index": 1126,
+            "position": [
+              -1.47449410125,
+              0.0,
+              -0.1444369775
+            ],
+            "energy": 0.12698507100259646,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006871817523046098,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51000,
+            "face_index": 1133,
+            "position": [
+              -1.4842057587500002,
+              0.0166642225,
+              -0.11176943375
+            ],
+            "energy": 0.1269893167914571,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006876063311906739,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84100,
+            "face_index": 1868,
+            "position": [
+              -1.4842057587500002,
+              -0.0166642225,
+              -0.11176943375
+            ],
+            "energy": 0.1269893167914571,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.006876063311906739,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50690,
+            "face_index": 1126,
+            "position": [
+              -1.4756013862500001,
+              0.0166511,
+              -0.13913564
+            ],
+            "energy": 0.12776134469828063,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.007648091218730256,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83727,
+            "face_index": 1860,
+            "position": [
+              -1.47560138625,
+              -0.0166511,
+              -0.13913564
+            ],
+            "energy": 0.1277613446982807,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00764809121873034,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50694,
+            "face_index": 1126,
+            "position": [
+              -1.48062071625,
+              0.024976649999999996,
+              -0.12285489625
+            ],
+            "energy": 0.12851679101142058,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.008403537531870215,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83735,
+            "face_index": 1860,
+            "position": [
+              -1.48062071625,
+              -0.024976649999999996,
+              -0.12285489625
+            ],
+            "energy": 0.12851679101142058,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.008403537531870215,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51014,
+            "face_index": 1133,
+            "position": [
+              -1.48062071625,
+              0.024976649999999996,
+              -0.12285489625
+            ],
+            "energy": 0.12851679101142058,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.008403537531870215,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84098,
+            "face_index": 1868,
+            "position": [
+              -1.48062071625,
+              -0.024976649999999996,
+              -0.12285489625
+            ],
+            "energy": 0.12851679101142058,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.008403537531870215,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50695,
+            "face_index": 1126,
+            "position": [
+              -1.4783878725,
+              0.024976649999999996,
+              -0.12966993375
+            ],
+            "energy": 0.12884146183177556,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00872820835222519,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83731,
+            "face_index": 1860,
+            "position": [
+              -1.4783878725,
+              -0.024976649999999996,
+              -0.12966993375000002
+            ],
+            "energy": 0.12884146183177556,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00872820835222519,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50991,
+            "face_index": 1133,
+            "position": [
+              -1.4861116,
+              0.016677345,
+              -0.10484834
+            ],
+            "energy": 0.12894227341206735,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00882901993251698,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84099,
+            "face_index": 1868,
+            "position": [
+              -1.4861116,
+              -0.016677345,
+              -0.10484834
+            ],
+            "energy": 0.12894227341206735,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00882901993251698,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83571,
+            "face_index": 1857,
+            "position": [
+              -1.4861116,
+              -0.016677345,
+              -0.10484834
+            ],
+            "energy": 0.12894227341206735,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00882901993251698,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50828,
+            "face_index": 1129,
+            "position": [
+              -1.4861116,
+              0.016677345,
+              -0.10484834
+            ],
+            "energy": 0.12894227341206735,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00882901993251698,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84097,
+            "face_index": 1868,
+            "position": [
+              -1.4825265575,
+              -0.0249897725,
+              -0.1159338025
+            ],
+            "energy": 0.12913459615564293,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009021342676092562,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51007,
+            "face_index": 1133,
+            "position": [
+              -1.4825265575,
+              0.0249897725,
+              -0.1159338025
+            ],
+            "energy": 0.12913459615564293,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009021342676092562,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83580,
+            "face_index": 1857,
+            "position": [
+              -1.48722895625,
+              -0.0083386725,
+              -0.100724
+            ],
+            "energy": 0.1288309910277637,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.008717737548213353,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50820,
+            "face_index": 1129,
+            "position": [
+              -1.48722895625,
+              0.0083386725,
+              -0.100724
+            ],
+            "energy": 0.1288309910277637,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.008717737548213353,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83722,
+            "face_index": 1860,
+            "position": [
+              -1.4728149000000001,
+              -0.00832555,
+              -0.14860134625000002
+            ],
+            "energy": 0.1293480896965494,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009234836216999052,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50684,
+            "face_index": 1126,
+            "position": [
+              -1.4728149,
+              0.00832555,
+              -0.14860134625
+            ],
+            "energy": 0.1293480896965495,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009234836216999142,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83588,
+            "face_index": 1857,
+            "position": [
+              -1.4883463125,
+              0.0,
+              -0.09659966
+            ],
+            "energy": 0.1301243826352564,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.01001112915570604,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50811,
+            "face_index": 1129,
+            "position": [
+              -1.4883463125,
+              0.0,
+              -0.09659966
+            ],
+            "energy": 0.1301243826352564,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.01001112915570604,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83726,
+            "face_index": 1860,
+            "position": [
+              -1.47615502875,
+              -0.024976649999999996,
+              -0.13648497125
+            ],
+            "energy": 0.12998901788954356,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009875764409993206,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50696,
+            "face_index": 1126,
+            "position": [
+              -1.47615502875,
+              0.024976649999999996,
+              -0.13648497125
+            ],
+            "energy": 0.12998901788954356,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009875764409993206,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83721,
+            "face_index": 1860,
+            "position": [
+              -1.4733685425,
+              -0.0166511,
+              -0.14595067750000001
+            ],
+            "energy": 0.13004059565949685,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009927342179946484,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50691,
+            "face_index": 1126,
+            "position": [
+              -1.4733685425,
+              0.0166511,
+              -0.14595067750000001
+            ],
+            "energy": 0.13004059565949685,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.009927342179946484,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83723,
+            "face_index": 1860,
+            "position": [
+              -1.4722612575,
+              0.0,
+              -0.15125201500000002
+            ],
+            "energy": 0.1298819412958826,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00976868781633224,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50676,
+            "face_index": 1126,
+            "position": [
+              -1.4722612575,
+              0.0,
+              -0.15125201500000002
+            ],
+            "energy": 0.1298819412958826,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.00976868781633224,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84096,
+            "face_index": 1868,
+            "position": [
+              -1.48443239875,
+              -0.025002894999999997,
+              -0.10901270874999999
+            ],
+            "energy": 0.13057694436812917,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.010463690888578802,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50999,
+            "face_index": 1133,
+            "position": [
+              -1.48443239875,
+              0.025002894999999997,
+              -0.10901270874999999
+            ],
+            "energy": 0.13057694436812917,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.010463690888578802,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83720,
+            "face_index": 1860,
+            "position": [
+              -1.4739221850000002,
+              -0.024976649999999996,
+              -0.14330000875
+            ],
+            "energy": 0.1319594591847247,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.011846205705174346,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50697,
+            "face_index": 1126,
+            "position": [
+              -1.473922185,
+              0.024976649999999996,
+              -0.14330000875
+            ],
+            "energy": 0.1319594591847248,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.011846205705174438,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83579,
+            "face_index": 1857,
+            "position": [
+              -1.48745559625,
+              -0.016677345,
+              -0.09796727499999999
+            ],
+            "energy": 0.1318059844604917,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.011692730980941314,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50827,
+            "face_index": 1129,
+            "position": [
+              -1.48745559625,
+              0.016677345,
+              -0.09796727499999999
+            ],
+            "energy": 0.1318059844604917,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.011692730980941314,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83587,
+            "face_index": 1857,
+            "position": [
+              -1.4885729525,
+              -0.0083386725,
+              -0.093842935
+            ],
+            "energy": 0.13217280726390027,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012059553784349903,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50819,
+            "face_index": 1129,
+            "position": [
+              -1.4885729525,
+              0.0083386725,
+              -0.09384293499999999
+            ],
+            "energy": 0.13217280726390027,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012059553784349914,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50700,
+            "face_index": 1126,
+            "position": [
+              -1.478941515,
+              0.0333022,
+              -0.127019265
+            ],
+            "energy": 0.13260430225135394,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012491048771803587,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83730,
+            "face_index": 1860,
+            "position": [
+              -1.478941515,
+              -0.0333022,
+              -0.127019265
+            ],
+            "energy": 0.13260430225135394,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012491048771803587,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51019,
+            "face_index": 1133,
+            "position": [
+              -1.478941515,
+              0.0333022,
+              -0.127019265
+            ],
+            "energy": 0.13260430225135394,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012491048771803587,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84094,
+            "face_index": 1868,
+            "position": [
+              -1.478941515,
+              -0.0333022,
+              -0.127019265
+            ],
+            "energy": 0.13260430225135394,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012491048771803587,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84093,
+            "face_index": 1868,
+            "position": [
+              -1.48084735625,
+              -0.033315322499999994,
+              -0.12009817125000001
+            ],
+            "energy": 0.13271149898745235,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012598245507901982,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51013,
+            "face_index": 1133,
+            "position": [
+              -1.48084735625,
+              0.033315322499999994,
+              -0.12009817125000001
+            ],
+            "energy": 0.13271149898745235,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012598245507901982,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50990,
+            "face_index": 1133,
+            "position": [
+              -1.4863382399999998,
+              0.0250160175,
+              -0.102091615
+            ],
+            "energy": 0.13284383564887944,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012730582169329093,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83570,
+            "face_index": 1857,
+            "position": [
+              -1.4863382399999998,
+              -0.0250160175,
+              -0.102091615
+            ],
+            "energy": 0.13284383564887944,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012730582169329093,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50834,
+            "face_index": 1129,
+            "position": [
+              -1.4863382399999998,
+              0.0250160175,
+              -0.102091615
+            ],
+            "energy": 0.13284383564887944,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012730582169329093,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84095,
+            "face_index": 1868,
+            "position": [
+              -1.4863382399999998,
+              -0.0250160175,
+              -0.102091615
+            ],
+            "energy": 0.13284383564887944,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012730582169329093,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83715,
+            "face_index": 1860,
+            "position": [
+              -1.4705820562500003,
+              -0.00832555,
+              -0.15541638375000003
+            ],
+            "energy": 0.13275903556121366,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012645782081663304,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50685,
+            "face_index": 1126,
+            "position": [
+              -1.4705820562500003,
+              0.00832555,
+              -0.15541638375000003
+            ],
+            "energy": 0.13275903556121366,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.012645782081663304,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50692,
+            "face_index": 1126,
+            "position": [
+              -1.4711356987500002,
+              0.0166511,
+              -0.152765715
+            ],
+            "energy": 0.13314273185812608,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013029478378575736,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83714,
+            "face_index": 1860,
+            "position": [
+              -1.47113569875,
+              -0.0166511,
+              -0.152765715
+            ],
+            "energy": 0.1331427318581262,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013029478378575834,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50701,
+            "face_index": 1126,
+            "position": [
+              -1.47670867125,
+              0.0333022,
+              -0.1338343025
+            ],
+            "energy": 0.13344304864308704,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013329795163536684,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83725,
+            "face_index": 1860,
+            "position": [
+              -1.47670867125,
+              -0.0333022,
+              -0.1338343025
+            ],
+            "energy": 0.13344304864308704,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013329795163536684,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 84092,
+            "face_index": 1868,
+            "position": [
+              -1.4827531975000001,
+              -0.033328445,
+              -0.1131770775
+            ],
+            "energy": 0.13364323879181464,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013529985312264268,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 51006,
+            "face_index": 1133,
+            "position": [
+              -1.4827531975000001,
+              0.033328445,
+              -0.1131770775
+            ],
+            "energy": 0.13364323879181464,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013529985312264268,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83594,
+            "face_index": 1857,
+            "position": [
+              -1.48969030875,
+              0.0,
+              -0.089718595
+            ],
+            "energy": 0.13394430405910518,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013831050579554824,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50810,
+            "face_index": 1129,
+            "position": [
+              -1.48969030875,
+              0.0,
+              -0.089718595
+            ],
+            "energy": 0.13394430405910518,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.013831050579554824,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 83716,
+            "face_index": 1860,
+            "position": [
+              -1.4700284137500002,
+              0.0,
+              -0.1580670525
+            ],
+            "energy": 0.13360169682658185,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.01348844334703149,
+            "reject_reason": "none"
+          },
+          {
+            "seed_index": 50677,
+            "face_index": 1126,
+            "position": [
+              -1.4700284137500002,
+              0.0,
+              -0.1580670525
+            ],
+            "energy": 0.13360169682658185,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": Infinity,
+            "curvature_energy": 0.0,
+            "regularization_energy_nm": 0.01348844334703149,
+            "reject_reason": "none"
+          }
+        ],
+        "finite_candidate_count": 100,
+        "best_energy": 0.12323177154721661,
+        "selected_seed_index": 83741,
+        "accepted": true
+      },
+      {
+        "step_index": 1,
+        "initialized_target": [
+          -1.4446449924749865,
+          1.4642108258897482e-20,
+          -0.2487487085341406
+        ],
+        "candidates": [
+          {
+            "seed_index": 50133,
+            "face_index": 1114,
+            "position": [
+              -1.43098471125,
+              0.0,
+              -0.23837001624999998
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.688754763698128,
+            "curvature_energy": 1320.478607951661,
+            "regularization_energy_nm": 0.0023545642933967717,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84278,
+            "face_index": 1872,
+            "position": [
+              -1.43098471125,
+              0.0,
+              -0.23837001624999998
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.688754763698128,
+            "curvature_energy": 1320.478607951661,
+            "regularization_energy_nm": 0.0023545642933967717,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50132,
+            "face_index": 1114,
+            "position": [
+              -1.4349589875,
+              0.0,
+              -0.2317844175
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.697341479310262,
+            "curvature_energy": 1303.2414133399723,
+            "regularization_energy_nm": 0.0030528469013318916,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84281,
+            "face_index": 1872,
+            "position": [
+              -1.4349589875,
+              0.0,
+              -0.2317844175
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.697341479310262,
+            "curvature_energy": 1303.2414133399723,
+            "regularization_energy_nm": 0.0030528469013318916,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50134,
+            "face_index": 1114,
+            "position": [
+              -1.4270104350000001,
+              0.0,
+              -0.244955615
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.691430860169705,
+            "curvature_energy": 1315.0943921042392,
+            "regularization_energy_nm": 0.002602921407178684,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84274,
+            "face_index": 1872,
+            "position": [
+              -1.4270104350000001,
+              0.0,
+              -0.244955615
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.691430860169705,
+            "curvature_energy": 1315.0943921042392,
+            "regularization_energy_nm": 0.002602921407178684,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84277,
+            "face_index": 1872,
+            "position": [
+              -1.43200764,
+              -0.00825530125,
+              -0.23613552499999999
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.506764969178466,
+            "curvature_energy": 1712.4505178941365,
+            "regularization_energy_nm": 0.0030955606013697273,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50141,
+            "face_index": 1114,
+            "position": [
+              -1.4320076400000001,
+              0.00825530125,
+              -0.23613552499999999
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.5067649691785165,
+            "curvature_energy": 1712.4505178940205,
+            "regularization_energy_nm": 0.003095560601369684,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50142,
+            "face_index": 1114,
+            "position": [
+              -1.42803336375,
+              0.00825530125,
+              -0.24272112375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.531972866329307,
+            "curvature_energy": 1655.1218514517725,
+            "regularization_energy_nm": 0.0030434238876404004,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84273,
+            "face_index": 1872,
+            "position": [
+              -1.42803336375,
+              -0.00825530125,
+              -0.24272112375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.531972866329307,
+            "curvature_energy": 1655.1218514517725,
+            "regularization_energy_nm": 0.0030434238876404004,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50140,
+            "face_index": 1114,
+            "position": [
+              -1.4359819162499998,
+              0.00825530125,
+              -0.22954992625
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.486113292971137,
+            "curvature_energy": 1760.144672730915,
+            "regularization_energy_nm": 0.0040943370368160875,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84280,
+            "face_index": 1872,
+            "position": [
+              -1.43598191625,
+              -0.00825530125,
+              -0.22954992625
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.486113292971199,
+            "curvature_energy": 1760.1446727307705,
+            "regularization_energy_nm": 0.004094337036816058,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84268,
+            "face_index": 1872,
+            "position": [
+              -1.4240590875,
+              -0.00825530125,
+              -0.2493067225
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.560633946949741,
+            "curvature_energy": 1591.1256774696835,
+            "regularization_energy_nm": 0.003937926895628109,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50143,
+            "face_index": 1114,
+            "position": [
+              -1.4240590874999999,
+              0.00825530125,
+              -0.2493067225
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.560633946949697,
+            "curvature_energy": 1591.1256774697817,
+            "regularization_energy_nm": 0.003937926895628184,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50131,
+            "face_index": 1114,
+            "position": [
+              -1.43893326375,
+              0.0,
+              -0.22519881875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.72169877204355,
+            "curvature_energy": 1254.9623795048426,
+            "regularization_energy_nm": 0.004697769230984037,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84283,
+            "face_index": 1872,
+            "position": [
+              -1.43893326375,
+              0.0,
+              -0.22519881875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.72169877204355,
+            "curvature_energy": 1254.9623795048426,
+            "regularization_energy_nm": 0.004697769230984037,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50135,
+            "face_index": 1114,
+            "position": [
+              -1.42303615875,
+              0.0,
+              -0.25154121375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.702297436014178,
+            "curvature_energy": 1293.3442565009757,
+            "regularization_energy_nm": 0.0037979182426777103,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84269,
+            "face_index": 1872,
+            "position": [
+              -1.42303615875,
+              0.0,
+              -0.25154121375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.702297436014178,
+            "curvature_energy": 1293.3442565009757,
+            "regularization_energy_nm": 0.0037979182426777103,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50149,
+            "face_index": 1114,
+            "position": [
+              -1.4290562924999999,
+              0.0165106025,
+              -0.2404866325
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.1749850793694385,
+            "curvature_energy": 2557.9619855707174,
+            "regularization_energy_nm": 0.004670955697736587,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84272,
+            "face_index": 1872,
+            "position": [
+              -1.4290562924999999,
+              -0.0165106025,
+              -0.2404866325
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.1749850793694385,
+            "curvature_energy": 2557.9619855707174,
+            "regularization_energy_nm": 0.004670955697736587,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84276,
+            "face_index": 1872,
+            "position": [
+              -1.43303056875,
+              -0.0165106025,
+              -0.23390103375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.099255562362757,
+            "curvature_energy": 2774.6530832742765,
+            "regularization_energy_nm": 0.005023586238977115,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50148,
+            "face_index": 1114,
+            "position": [
+              -1.43303056875,
+              0.0165106025,
+              -0.23390103375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.099255562362757,
+            "curvature_energy": 2774.6530832742765,
+            "regularization_energy_nm": 0.005023586238977115,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84267,
+            "face_index": 1872,
+            "position": [
+              -1.42508201625,
+              -0.0165106025,
+              -0.24707223125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.2448425136301795,
+            "curvature_energy": 2365.8840207958065,
+            "regularization_energy_nm": 0.005264964878213055,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50150,
+            "face_index": 1114,
+            "position": [
+              -1.42508201625,
+              0.0165106025,
+              -0.24707223125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.2448425136301795,
+            "curvature_energy": 2365.8840207958065,
+            "regularization_energy_nm": 0.005264964878213055,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51361,
+            "face_index": 1141,
+            "position": [
+              -1.4399561925,
+              0.00825530125,
+              -0.2229643275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.471407158243942,
+            "curvature_energy": 1794.507220819477,
+            "regularization_energy_nm": 0.006039753193979477,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85723,
+            "face_index": 1904,
+            "position": [
+              -1.4399561925,
+              -0.00825530125,
+              -0.2229643275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.471407158243942,
+            "curvature_energy": 1794.507220819477,
+            "regularization_energy_nm": 0.006039753193979477,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84282,
+            "face_index": 1872,
+            "position": [
+              -1.4399561925,
+              -0.00825530125,
+              -0.2229643275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.471407158243942,
+            "curvature_energy": 1794.507220819477,
+            "regularization_energy_nm": 0.006039753193979477,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50139,
+            "face_index": 1114,
+            "position": [
+              -1.4399561925,
+              0.00825530125,
+              -0.2229643275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.471407158243942,
+            "curvature_energy": 1794.507220819477,
+            "regularization_energy_nm": 0.006039753193979477,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84279,
+            "face_index": 1872,
+            "position": [
+              -1.437004845,
+              -0.0165106025,
+              -0.227315435
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.015868171040871,
+            "curvature_energy": 3023.4464087543224,
+            "regularization_energy_nm": 0.006322856501934729,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50147,
+            "face_index": 1114,
+            "position": [
+              -1.437004845,
+              0.0165106025,
+              -0.227315435
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.015868171040871,
+            "curvature_energy": 3023.4464087543224,
+            "regularization_energy_nm": 0.006322856501934729,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85721,
+            "face_index": 1904,
+            "position": [
+              -1.437004845,
+              -0.0165106025,
+              -0.227315435
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.015868171040871,
+            "curvature_energy": 3023.4464087543224,
+            "regularization_energy_nm": 0.006322856501934729,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51368,
+            "face_index": 1141,
+            "position": [
+              -1.437004845,
+              0.0165106025,
+              -0.227315435
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.015868171040871,
+            "curvature_energy": 3023.4464087543224,
+            "regularization_energy_nm": 0.006322856501934729,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50144,
+            "face_index": 1114,
+            "position": [
+              -1.4200848112500002,
+              0.00825530125,
+              -0.25589232125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.591885062898973,
+            "curvature_energy": 1522.7843997656018,
+            "regularization_energy_nm": 0.00577906962533286,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84262,
+            "face_index": 1872,
+            "position": [
+              -1.42008481125,
+              -0.00825530125,
+              -0.25589232125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.591885062898929,
+            "curvature_energy": 1522.784399765696,
+            "regularization_energy_nm": 0.005779069625332948,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50130,
+            "face_index": 1114,
+            "position": [
+              -1.44290754,
+              0.0,
+              -0.21861322
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.768677345026613,
+            "curvature_energy": 1164.4198717707882,
+            "regularization_energy_nm": 0.007289331282353253,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50633,
+            "face_index": 1125,
+            "position": [
+              -1.44290754,
+              0.0,
+              -0.21861322
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.768677345026613,
+            "curvature_energy": 1164.4198717707882,
+            "regularization_energy_nm": 0.007289331282353253,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85724,
+            "face_index": 1904,
+            "position": [
+              -1.44290754,
+              0.0,
+              -0.21861322
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.768677345026613,
+            "curvature_energy": 1164.4198717707882,
+            "regularization_energy_nm": 0.007289331282353253,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50136,
+            "face_index": 1114,
+            "position": [
+              -1.4190618825,
+              0.0,
+              -0.25812681249999997
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.7191994991324115,
+            "curvature_energy": 1259.87426695848,
+            "regularization_energy_nm": 0.00593955479989371,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51353,
+            "face_index": 1141,
+            "position": [
+              -1.44290754,
+              0.0,
+              -0.21861322
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.768677345026613,
+            "curvature_energy": 1164.4198717707882,
+            "regularization_energy_nm": 0.007289331282353253,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84284,
+            "face_index": 1872,
+            "position": [
+              -1.44290754,
+              0.0,
+              -0.21861322
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.768677345026613,
+            "curvature_energy": 1164.4198717707882,
+            "regularization_energy_nm": 0.007289331282353253,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84263,
+            "face_index": 1872,
+            "position": [
+              -1.4190618825,
+              0.0,
+              -0.25812681249999997
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.7191994991324115,
+            "curvature_energy": 1259.87426695848,
+            "regularization_energy_nm": 0.00593955479989371,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 83753,
+            "face_index": 1861,
+            "position": [
+              -1.44290754,
+              0.0,
+              -0.21861322
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.768677345026613,
+            "curvature_energy": 1164.4198717707882,
+            "regularization_energy_nm": 0.007289331282353253,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84261,
+            "face_index": 1872,
+            "position": [
+              -1.42110774,
+              -0.0165106025,
+              -0.25365783
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.310086776459999,
+            "curvature_energy": 2193.259984297576,
+            "regularization_energy_nm": 0.006805613780406565,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50151,
+            "face_index": 1114,
+            "position": [
+              -1.42110774,
+              0.0165106025,
+              -0.25365783
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.310086776459999,
+            "curvature_energy": 2193.259984297576,
+            "regularization_energy_nm": 0.006805613780406565,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50155,
+            "face_index": 1114,
+            "position": [
+              -1.43007922125,
+              0.02476590375,
+              -0.23825214125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.7240212864096036,
+            "curvature_energy": 3978.3007578287607,
+            "regularization_energy_nm": 0.007485516837467193,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84271,
+            "face_index": 1872,
+            "position": [
+              -1.43007922125,
+              -0.02476590375,
+              -0.23825214125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.7240212864096036,
+            "curvature_energy": 3978.3007578287607,
+            "regularization_energy_nm": 0.007485516837467193,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50154,
+            "face_index": 1114,
+            "position": [
+              -1.4340534974999999,
+              0.02476590375,
+              -0.2316665425
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.6016736798548603,
+            "curvature_energy": 4417.512300048684,
+            "regularization_energy_nm": 0.008138641206219018,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85718,
+            "face_index": 1904,
+            "position": [
+              -1.4340534974999999,
+              -0.02476590375,
+              -0.2316665425
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.6016736798548603,
+            "curvature_energy": 4417.512300048684,
+            "regularization_energy_nm": 0.008138641206219018,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51374,
+            "face_index": 1141,
+            "position": [
+              -1.4340534974999999,
+              0.02476590375,
+              -0.2316665425
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.6016736798548603,
+            "curvature_energy": 4417.512300048684,
+            "regularization_energy_nm": 0.008138641206219018,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84275,
+            "face_index": 1872,
+            "position": [
+              -1.4340534974999999,
+              -0.02476590375,
+              -0.2316665425
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.6016736798548603,
+            "curvature_energy": 4417.512300048684,
+            "regularization_energy_nm": 0.008138641206219018,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50156,
+            "face_index": 1114,
+            "position": [
+              -1.426104945,
+              0.02476590375,
+              -0.24483774
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.8350409745935212,
+            "curvature_energy": 3599.652555237211,
+            "regularization_energy_nm": 0.0077790321904324085,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84266,
+            "face_index": 1872,
+            "position": [
+              -1.426104945,
+              -0.02476590375,
+              -0.24483774
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.8350409745935212,
+            "curvature_energy": 3599.652555237211,
+            "regularization_energy_nm": 0.0077790321904324085,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51352,
+            "face_index": 1141,
+            "position": [
+              -1.44378967625,
+              0.0083208575,
+              -0.2160191375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.406515979839793,
+            "curvature_energy": 1950.0998255366455,
+            "regularization_energy_nm": 0.009129544443671091,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50641,
+            "face_index": 1125,
+            "position": [
+              -1.44378967625,
+              0.0083208575,
+              -0.2160191375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.406515979839793,
+            "curvature_energy": 1950.0998255366455,
+            "regularization_energy_nm": 0.009129544443671091,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85722,
+            "face_index": 1904,
+            "position": [
+              -1.44378967625,
+              -0.0083208575,
+              -0.2160191375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.406515979839793,
+            "curvature_energy": 1950.0998255366455,
+            "regularization_energy_nm": 0.009129544443671091,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 83752,
+            "face_index": 1861,
+            "position": [
+              -1.44378967625,
+              -0.0083208575,
+              -0.2160191375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.406515979839793,
+            "curvature_energy": 1950.0998255366455,
+            "regularization_energy_nm": 0.009129544443671091,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51360,
+            "face_index": 1141,
+            "position": [
+              -1.44083832875,
+              0.01657615875,
+              -0.22037024500000002
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.879715341484549,
+            "curvature_energy": 3452.626218949802,
+            "regularization_energy_nm": 0.008756775361431013,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85720,
+            "face_index": 1904,
+            "position": [
+              -1.44083832875,
+              -0.01657615875,
+              -0.22037024500000002
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.879715341484549,
+            "curvature_energy": 3452.626218949802,
+            "regularization_energy_nm": 0.008756775361431013,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50157,
+            "face_index": 1114,
+            "position": [
+              -1.42213066875,
+              0.02476590375,
+              -0.25142333875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.936512893068,
+            "curvature_energy": 3270.127929914105,
+            "regularization_energy_nm": 0.00901918726511474,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84260,
+            "face_index": 1872,
+            "position": [
+              -1.42213066875,
+              -0.02476590375,
+              -0.25142333875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.936512893068,
+            "curvature_energy": 3270.127929914105,
+            "regularization_energy_nm": 0.00901918726511474,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84255,
+            "face_index": 1872,
+            "position": [
+              -1.416110535,
+              -0.00825530125,
+              -0.26247792
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.625054007311579,
+            "curvature_energy": 1451.8903497457502,
+            "regularization_energy_nm": 0.008566852076754746,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50145,
+            "face_index": 1114,
+            "position": [
+              -1.416110535,
+              0.00825530125,
+              -0.26247792
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.625054007311579,
+            "curvature_energy": 1451.8903497457502,
+            "regularization_energy_nm": 0.008566852076754746,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51367,
+            "face_index": 1141,
+            "position": [
+              -1.4378869812500001,
+              0.02483146,
+              -0.2247213525
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.4344234972778693,
+            "curvature_energy": 5055.11638433454,
+            "regularization_energy_nm": 0.009916687675519953,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85717,
+            "face_index": 1904,
+            "position": [
+              -1.4378869812500001,
+              -0.02483146,
+              -0.2247213525
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.4344234972778693,
+            "curvature_energy": 5055.11638433454,
+            "regularization_energy_nm": 0.009916687675519953,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50632,
+            "face_index": 1125,
+            "position": [
+              -1.44601854375,
+              0.0,
+              -0.21189682875000002
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.660736385501858,
+            "curvature_energy": 1377.511274262045,
+            "regularization_energy_nm": 0.01087958149383873,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 83761,
+            "face_index": 1861,
+            "position": [
+              -1.44601854375,
+              0.0,
+              -0.21189682875000002
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.660736385501858,
+            "curvature_energy": 1377.511274262045,
+            "regularization_energy_nm": 0.01087958149383873,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84254,
+            "face_index": 1872,
+            "position": [
+              -1.41713346375,
+              -0.0165106025,
+              -0.26024342874999995
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.3716177119814965,
+            "curvature_energy": 2036.4516645405326,
+            "regularization_energy_nm": 0.009292902404317203,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50152,
+            "face_index": 1114,
+            "position": [
+              -1.41713346375,
+              0.0165106025,
+              -0.26024342875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.371617711981502,
+            "curvature_energy": 2036.4516645405192,
+            "regularization_energy_nm": 0.00929290240431721,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84256,
+            "face_index": 1872,
+            "position": [
+              -1.4150876062500002,
+              0.0,
+              -0.26471241125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.740589150639295,
+            "curvature_energy": 1218.147029659135,
+            "regularization_energy_nm": 0.00902783107882676,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50137,
+            "face_index": 1114,
+            "position": [
+              -1.4150876062500002,
+              0.0,
+              -0.26471241125
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.740589150639295,
+            "curvature_energy": 1218.147029659135,
+            "regularization_energy_nm": 0.00902783107882676,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51379,
+            "face_index": 1141,
+            "position": [
+              -1.43110215,
+              0.033021205,
+              -0.23601765
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.272986883896959,
+            "curvature_energy": 5711.309211361216,
+            "regularization_energy_nm": 0.011487107306832276,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85714,
+            "face_index": 1904,
+            "position": [
+              -1.43110215,
+              -0.033021205,
+              -0.23601765
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.272986883896959,
+            "curvature_energy": 5711.309211361216,
+            "regularization_energy_nm": 0.011487107306832276,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50160,
+            "face_index": 1114,
+            "position": [
+              -1.43110215,
+              0.033021205,
+              -0.23601765
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.272986883896959,
+            "curvature_energy": 5711.309211361216,
+            "regularization_energy_nm": 0.011487107306832276,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84270,
+            "face_index": 1872,
+            "position": [
+              -1.43110215,
+              -0.033021205,
+              -0.23601765
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.272986883896959,
+            "curvature_energy": 5711.309211361216,
+            "regularization_energy_nm": 0.011487107306832276,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51351,
+            "face_index": 1141,
+            "position": [
+              -1.4446718125,
+              0.016641715,
+              -0.213425055
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.7264449938818602,
+            "curvature_energy": 3969.832222475246,
+            "regularization_energy_nm": 0.012197663171639766,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 83751,
+            "face_index": 1861,
+            "position": [
+              -1.4446718125,
+              -0.016641715,
+              -0.213425055
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.7264449938818602,
+            "curvature_energy": 3969.832222475246,
+            "regularization_energy_nm": 0.012197663171639766,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85719,
+            "face_index": 1904,
+            "position": [
+              -1.4446718125,
+              -0.016641715,
+              -0.213425055
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.7264449938818602,
+            "curvature_energy": 3969.832222475246,
+            "regularization_energy_nm": 0.012197663171639766,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50648,
+            "face_index": 1125,
+            "position": [
+              -1.4446718125,
+              0.016641715,
+              -0.213425055
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.7264449938818602,
+            "curvature_energy": 3969.832222475246,
+            "regularization_energy_nm": 0.012197663171639766,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84265,
+            "face_index": 1872,
+            "position": [
+              -1.42712787375,
+              -0.033021205,
+              -0.24260324875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.4110442599256037,
+            "curvature_energy": 5147.667321384169,
+            "regularization_energy_nm": 0.0114801288322863,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50161,
+            "face_index": 1114,
+            "position": [
+              -1.42712787375,
+              0.033021205,
+              -0.24260324875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.4110442599256037,
+            "curvature_energy": 5147.667321384169,
+            "regularization_energy_nm": 0.0114801288322863,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50158,
+            "face_index": 1114,
+            "position": [
+              -1.4181563925,
+              0.02476590375,
+              -0.2580089375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.02990808341676,
+            "curvature_energy": 2980.8093927899777,
+            "regularization_energy_nm": 0.011205982061514049,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84253,
+            "face_index": 1872,
+            "position": [
+              -1.4181563925,
+              -0.02476590375,
+              -0.2580089375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.02990808341676,
+            "curvature_energy": 2980.8093927899777,
+            "regularization_energy_nm": 0.011205982061514049,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85716,
+            "face_index": 1904,
+            "position": [
+              -1.441720465,
+              -0.02489701625,
+              -0.21777616249999998
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.2511543496514426,
+            "curvature_energy": 5803.125050598649,
+            "regularization_energy_nm": 0.012701703095533402,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51359,
+            "face_index": 1141,
+            "position": [
+              -1.441720465,
+              0.02489701625,
+              -0.21777616249999998
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.2511543496514426,
+            "curvature_energy": 5803.125050598649,
+            "regularization_energy_nm": 0.012701703095533402,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 85713,
+            "face_index": 1904,
+            "position": [
+              -1.4349356337499999,
+              -0.03308676125,
+              -0.22907246
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.099235437926395,
+            "curvature_energy": 6462.286114285541,
+            "regularization_energy_nm": 0.012609281385937957,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 51373,
+            "face_index": 1141,
+            "position": [
+              -1.4349356337499999,
+              0.03308676125,
+              -0.22907246
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.099235437926395,
+            "curvature_energy": 6462.286114285541,
+            "regularization_energy_nm": 0.012609281385937957,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 83760,
+            "face_index": 1861,
+            "position": [
+              -1.44690068,
+              -0.0083208575,
+              -0.20930274625000003
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.252530989030252,
+            "curvature_energy": 2345.2019059180757,
+            "regularization_energy_nm": 0.01304246989014119,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50640,
+            "face_index": 1125,
+            "position": [
+              -1.44690068,
+              0.0083208575,
+              -0.20930274625000003
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.252530989030252,
+            "curvature_energy": 2345.2019059180757,
+            "regularization_energy_nm": 0.01304246989014119,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50162,
+            "face_index": 1114,
+            "position": [
+              -1.4231535975,
+              0.033021205,
+              -0.24918884749999998
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.53867629387298,
+            "curvature_energy": 4652.631850038567,
+            "regularization_energy_nm": 0.012419790079457316,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84259,
+            "face_index": 1872,
+            "position": [
+              -1.4231535975,
+              -0.033021205,
+              -0.24918884749999998
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 3.53867629387298,
+            "curvature_energy": 4652.631850038567,
+            "regularization_energy_nm": 0.012419790079457316,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84417,
+            "face_index": 1875,
+            "position": [
+              -1.4121362587500002,
+              -0.00825530125,
+              -0.26906351875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.659617390733093,
+            "curvature_energy": 1379.8140838174686,
+            "regularization_energy_nm": 0.012301274249893591,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50146,
+            "face_index": 1114,
+            "position": [
+              -1.4121362587500002,
+              0.00825530125,
+              -0.26906351875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.659617390733093,
+            "curvature_energy": 1379.8140838174686,
+            "regularization_energy_nm": 0.012301274249893591,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50182,
+            "face_index": 1115,
+            "position": [
+              -1.4121362587500002,
+              0.00825530125,
+              -0.26906351875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.659617390733093,
+            "curvature_energy": 1379.8140838174686,
+            "regularization_energy_nm": 0.012301274249893591,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84247,
+            "face_index": 1872,
+            "position": [
+              -1.4121362587500002,
+              -0.00825530125,
+              -0.26906351875
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.659617390733093,
+            "curvature_energy": 1379.8140838174686,
+            "regularization_energy_nm": 0.012301274249893591,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50153,
+            "face_index": 1114,
+            "position": [
+              -1.4131591875,
+              0.0165106025,
+              -0.2668290275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.430088702425602,
+            "curvature_energy": 1892.83035700161,
+            "regularization_energy_nm": 0.012726830749944807,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84246,
+            "face_index": 1872,
+            "position": [
+              -1.4131591875,
+              -0.0165106025,
+              -0.2668290275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.430088702425602,
+            "curvature_energy": 1892.83035700161,
+            "regularization_energy_nm": 0.012726830749944807,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50181,
+            "face_index": 1115,
+            "position": [
+              -1.4131591875,
+              0.0165106025,
+              -0.2668290275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.430088702425602,
+            "curvature_energy": 1892.83035700161,
+            "regularization_energy_nm": 0.012726830749944807,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 84414,
+            "face_index": 1875,
+            "position": [
+              -1.4131591875,
+              -0.0165106025,
+              -0.2668290275
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.430088702425602,
+            "curvature_energy": 1892.83035700161,
+            "regularization_energy_nm": 0.012726830749944807,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 50631,
+            "face_index": 1125,
+            "position": [
+              -1.4491295475,
+              0.0,
+              -0.2051804375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.551595409954613,
+            "curvature_energy": 1611.1712395274046,
+            "regularization_energy_nm": 0.015346443797413664,
+            "reject_reason": "curvature"
+          },
+          {
+            "seed_index": 83768,
+            "face_index": 1861,
+            "position": [
+              -1.4491295475,
+              0.0,
+              -0.2051804375
+            ],
+            "energy": Infinity,
+            "sphere_radius_nm": 2.6,
+            "sphere_energy": 0.12011325347955036,
+            "curvature_radius_nm": 4.551595409954613,
+            "curvature_energy": 1611.1712395274046,
+            "regularization_energy_nm": 0.015346443797413664,
+            "reject_reason": "curvature"
+          }
+        ],
+        "finite_candidate_count": 0,
+        "best_energy": Infinity,
+        "selected_seed_index": 18446744073709551615,
+        "accepted": false
+      }
+    ]
+  }
+}
