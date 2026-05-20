@@ -30,6 +30,11 @@ struct PiecewiseHermiteGeneratorResult {
     PiecewiseHermiteGeneratorRunData run_data;
 };
 
+struct GeneratorInitializationOptions {
+    bool use_single_seed = false;
+    double initial_heading_angle_rad = 0.0;
+};
+
 [[nodiscard]] PiecewiseHermiteGeneratorResult piecewise_hermite_generator(
     geometrycentral::surface::ManifoldSurfaceMesh& mesh,
     geometrycentral::surface::VertexPositionGeometry& geometry,
@@ -39,7 +44,8 @@ struct PiecewiseHermiteGeneratorResult {
     double max_curvature,
     double curvature_tolerance,
     double extension_step_world,
-    int outer_iterations
+    int outer_iterations,
+    const GeneratorInitializationOptions& initialization_options = {}
 );
 
 }  // namespace autorigami

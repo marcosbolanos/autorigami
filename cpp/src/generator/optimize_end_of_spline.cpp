@@ -16,6 +16,18 @@ namespace autorigami {
 namespace {
 
 constexpr double kSmallLengthEpsilon = 1e-12;
+constexpr double kPi = 3.14159265358979323846;
+
+struct NonlocalDistanceEvaluation {
+    bool violates_minimum_separation;
+    bool has_nonlocal_distance;
+    double minimum_distance;
+};
+
+struct CandidateStep {
+    EndOfSplineStepResult result;
+    double score;
+};
 
 [[nodiscard]] geometrycentral::surface::Face point_face(
     const geometrycentral::surface::SurfacePoint& point
@@ -296,6 +308,18 @@ struct ClosestFacePoint {
     return blended.normalizeCutoff();
 }
 
+[[nodiscard]] std::array<double, 2> rotate_local_step(
+    const std::array<double, 2>& local,
+    double angle
+) {
+    const double cs = std::cos(angle);
+    const double sn = std::sin(angle);
+    return {
+        cs * local[0] - sn * local[1],
+        sn * local[0] + cs * local[1],
+    };
+}
+
 [[nodiscard]] double segment_segment_distance_squared(
     const geometrycentral::Vector3& p0,
     const geometrycentral::Vector3& p1,
@@ -382,15 +406,21 @@ struct ClosestFacePoint {
     return 0.0;
 }
 
-[[nodiscard]] bool violates_minimum_separation(
+[[nodiscard]] NonlocalDistanceEvaluation evaluate_nonlocal_distance(
     const std::vector<geometrycentral::Vector3>& points,
     const std::vector<double>& cumulative_lengths,
     std::size_t first_new_segment_index,
     double minimum_separation,
     double nonlocal_window
 ) {
+    NonlocalDistanceEvaluation out{
+        .violates_minimum_separation = false,
+        .has_nonlocal_distance = false,
+        .minimum_distance = std::numeric_limits<double>::infinity(),
+    };
+
     if (points.size() < 4) {
-        return false;
+        return out;
     }
 
     const double minimum_separation_sq = minimum_separation * minimum_separation;
@@ -411,13 +441,16 @@ struct ClosestFacePoint {
             const geometrycentral::Vector3 b0 = points[j];
             const geometrycentral::Vector3 b1 = points[j + 1];
             const double distance_sq = segment_segment_distance_squared(a0, a1, b0, b1);
+            out.has_nonlocal_distance = true;
+            out.minimum_distance = std::min(out.minimum_distance, std::sqrt(distance_sq));
             if (distance_sq < minimum_separation_sq) {
-                return true;
+                out.violates_minimum_separation = true;
+                return out;
             }
         }
     }
 
-    return false;
+    return out;
 }
 
 }  // namespace
@@ -427,6 +460,7 @@ EndOfSplineStepResult bootstrap_from_seed(
     geometrycentral::surface::VertexPositionGeometry& geometry,
     const geometrycentral::surface::SurfacePoint& seed_surface,
     const GeneratorAxis& axis,
+    double initial_heading_angle_rad,
     double spacing,
     double max_curvature,
     double curvature_tolerance
@@ -449,8 +483,15 @@ EndOfSplineStepResult bootstrap_from_seed(
         axis,
         axis_direction
     );
-    const std::array<double, 2> axis_local =
+    std::array<double, 2> axis_local =
         project_vector_to_face_basis(seed_face, geometry, initial_direction * spacing);
+    if (std::abs(initial_heading_angle_rad) > 1e-15) {
+        const double cs = std::cos(initial_heading_angle_rad);
+        const double sn = std::sin(initial_heading_angle_rad);
+        const double x = axis_local[0];
+        const double y = axis_local[1];
+        axis_local = {cs * x - sn * y, sn * x + cs * y};
+    }
 
     constexpr int max_attempts = 16;
     constexpr double jitter_scale = 0.03;
@@ -581,26 +622,52 @@ EndOfSplineStepResult optimize_end_of_spline(
     if (curvature_tolerance < 0.0) {
         throw std::invalid_argument("curvature_tolerance must be >= 0");
     }
-    geometrycentral::Vector3 preferred_direction = axis_direction;
+    const geometrycentral::Vector3 current_point = current.points.back();
+    const geometrycentral::Vector3 current_rel = current_point - axis.origin;
+    const double current_axial = geometrycentral::dot(current_rel, axis_direction);
+    const geometrycentral::Vector3 current_radial = current_rel - axis_direction * current_axial;
+    geometrycentral::Vector3 wrap_direction = geometrycentral::cross(axis_direction, current_radial);
+    if (geometrycentral::norm2(wrap_direction) < kSmallLengthEpsilon) {
+        wrap_direction = axis_direction;
+    } else {
+        wrap_direction = wrap_direction.normalizeCutoff();
+    }
+
+    geometrycentral::Vector3 last_direction = wrap_direction;
+    bool has_last_direction = false;
     if (current.points.size() >= 2) {
         const geometrycentral::Vector3 last_segment =
             current.points.back() - current.points[current.points.size() - 2];
         if (geometrycentral::norm2(last_segment) > kSmallLengthEpsilon) {
-            const geometrycentral::Vector3 last_direction = last_segment.normalizeCutoff();
-            preferred_direction = (last_direction * 0.9 + axis_direction * 0.1).normalizeCutoff();
+            last_direction = last_segment.normalizeCutoff();
+            has_last_direction = true;
+            if (geometrycentral::dot(last_direction, wrap_direction) < 0.0) {
+                wrap_direction = wrap_direction * -1.0;
+            }
         }
     }
+
+    geometrycentral::Vector3 preferred_direction = wrap_direction * 0.8 + axis_direction * 0.05;
+    if (has_last_direction) {
+        preferred_direction = last_direction * 0.55 + wrap_direction * 0.4 + axis_direction * 0.05;
+    }
+    if (geometrycentral::norm2(preferred_direction) < kSmallLengthEpsilon) {
+        preferred_direction = wrap_direction;
+    } else {
+        preferred_direction = preferred_direction.normalizeCutoff();
+    }
+
     const std::array<double, 2> preferred_step_local = project_vector_to_face_basis(
         current_face,
         geometry,
         preferred_direction * extension_step_world
     );
 
-    auto trial_step = [&](double scale) -> std::optional<EndOfSplineStepResult> {
-        const std::array<double, 2> endpoint_step_local = {
-            preferred_step_local[0] * scale,
-            preferred_step_local[1] * scale,
-        };
+    const std::vector<double> existing_arclength = cumulative_chord_lengths(current.points);
+    const double current_arclength = existing_arclength.back();
+    const double packing_warmup_length = std::max(8.0 * spacing_world, 4.0 * nonlocal_window_world);
+
+    auto trial_step = [&](const std::array<double, 2>& endpoint_step_local) -> std::optional<CandidateStep> {
         const geometrycentral::Vector3 trial_step_world =
             lift_local_to_face_tangent(current_face, geometry, endpoint_step_local);
         if (geometrycentral::norm(trial_step_world) < kSmallLengthEpsilon) {
@@ -615,11 +682,9 @@ EndOfSplineStepResult optimize_end_of_spline(
         ).inSomeFace();
         const geometrycentral::Vector3 next_point = surface_point_position(next_surface, geometry);
         const double arc_step = geometrycentral::norm(next_point - current.points.back());
-        if (arc_step < kSmallLengthEpsilon) {
+        if (arc_step < std::max(kSmallLengthEpsilon, extension_step_world * 0.1)) {
             return std::nullopt;
         }
-
-        const std::vector<double> existing_arclength = cumulative_chord_lengths(current.points);
 
         PiecewiseHermiteData trial = current;
         std::vector<double> trial_arclength = existing_arclength;
@@ -627,13 +692,14 @@ EndOfSplineStepResult optimize_end_of_spline(
         trial_arclength.push_back(existing_arclength.back() + arc_step);
 
         const std::size_t first_new_segment_index = current.points.size() - 1;
-        if (violates_minimum_separation(
-                trial.points,
-                trial_arclength,
-                first_new_segment_index,
-                spacing_world,
-                nonlocal_window_world
-            )) {
+        const NonlocalDistanceEvaluation nonlocal = evaluate_nonlocal_distance(
+            trial.points,
+            trial_arclength,
+            first_new_segment_index,
+            spacing_world,
+            nonlocal_window_world
+        );
+        if (nonlocal.violates_minimum_separation) {
             return std::nullopt;
         }
 
@@ -645,24 +711,68 @@ EndOfSplineStepResult optimize_end_of_spline(
 
         trial.tangents = tangents_from_polyline(trial.points);
 
-        return EndOfSplineStepResult{
-            .spline = trial,
-            .state =
-                SurfaceEndOptimizationState{
-                    .end_point_surface = next_surface,
-                    .tangent_local = endpoint_step_local,
+        const geometrycentral::Vector3 candidate_direction = (next_point - current.points.back()).normalizeCutoff();
+        const double wrap_progress = geometrycentral::dot(candidate_direction, wrap_direction);
+        const double axial_drift = std::abs(geometrycentral::dot(candidate_direction, axis_direction));
+        const double momentum = has_last_direction ? geometrycentral::dot(candidate_direction, last_direction) : 0.0;
+        double score = 4.0 * wrap_progress + 0.75 * momentum - 2.0 * axial_drift;
+
+        if (current_arclength >= packing_warmup_length && nonlocal.has_nonlocal_distance) {
+            const double spacing_error = std::abs(nonlocal.minimum_distance - spacing_world) / spacing_world;
+            const double closeness_score = -spacing_error;
+            score += 3.0 * closeness_score;
+        }
+
+        return CandidateStep{
+            .result =
+                EndOfSplineStepResult{
+                    .spline = trial,
+                    .state =
+                        SurfaceEndOptimizationState{
+                            .end_point_surface = next_surface,
+                            .tangent_local = endpoint_step_local,
+                        },
                 },
+            .score = score,
         };
     };
 
-    constexpr int max_backtracks = 10;
-    double scale = 1.0;
-    for (int k = 0; k < max_backtracks; ++k) {
-        const std::optional<EndOfSplineStepResult> result = trial_step(scale);
-        if (result.has_value()) {
-            return *result;
+    constexpr std::array<double, 13> angle_offsets{
+        0.0,
+        -kPi / 12.0,
+        kPi / 12.0,
+        -kPi / 6.0,
+        kPi / 6.0,
+        -kPi / 4.0,
+        kPi / 4.0,
+        -kPi / 3.0,
+        kPi / 3.0,
+        -kPi / 2.0,
+        kPi / 2.0,
+        -2.0 * kPi / 3.0,
+        2.0 * kPi / 3.0,
+    };
+    constexpr std::array<double, 4> scales{1.0, 0.75, 0.5, 0.25};
+
+    std::optional<CandidateStep> best_candidate;
+    for (double scale : scales) {
+        const std::array<double, 2> scaled_local = {
+            preferred_step_local[0] * scale,
+            preferred_step_local[1] * scale,
+        };
+        for (double angle : angle_offsets) {
+            const std::optional<CandidateStep> candidate = trial_step(rotate_local_step(scaled_local, angle));
+            if (!candidate.has_value()) {
+                continue;
+            }
+            if (!best_candidate.has_value() || candidate->score > best_candidate->score) {
+                best_candidate = candidate;
+            }
         }
-        scale *= 0.5;
+    }
+
+    if (best_candidate.has_value()) {
+        return best_candidate->result;
     }
 
     return EndOfSplineStepResult{

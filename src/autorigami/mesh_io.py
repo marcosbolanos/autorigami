@@ -21,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--generator",
         default="piecewise_hermite",
-        choices=["piecewise_hermite", "simple_spiral", "ode"],
+        choices=["piecewise_hermite", "global_spiral", "simple_spiral", "ode"],
         help="Spiral generation algorithm.",
     )
     parser.add_argument(

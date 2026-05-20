@@ -10,10 +10,13 @@ pybind11_add_module(
     _native
     MODULE
     src/bindings/module.cpp
+    src/bindings/acap_bindings.cpp
     src/bindings/generator_bindings.cpp
     src/bindings/validation_bindings.cpp
+    src/acap/toolpath_stats.cpp
     src/generator/energy.cpp
     src/generator/generator.cpp
+    src/generator/initialization.cpp
     src/generator/optimize_end_of_spline.cpp
     src/generator/seed_point.cpp
     src/splines/splines.cpp

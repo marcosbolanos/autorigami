@@ -1,0 +1,3 @@
+[submodule "external/acap"]
+	path = external/acap
+	url = https://github.com/marcosbolanos/acap.git

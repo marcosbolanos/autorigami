@@ -136,12 +136,18 @@ struct ConvertedManifoldMesh {
     double max_curvature,
     double curvature_tolerance,
     double extension_step_world,
-    int outer_iterations
+    int outer_iterations,
+    bool use_single_seed,
+    double initial_heading_angle_rad
 ) {
     ConvertedManifoldMesh converted = convert_trimesh_to_manifold_surface_mesh(vertices, faces);
     const autorigami::GeneratorAxis axis{
         .origin = load_vec3(axis_origin, "axis_origin"),
         .direction = load_vec3(axis_direction, "axis_direction"),
+    };
+    const autorigami::GeneratorInitializationOptions initialization_options{
+        .use_single_seed = use_single_seed,
+        .initial_heading_angle_rad = initial_heading_angle_rad,
     };
     const autorigami::PiecewiseHermiteGeneratorResult generated = autorigami::piecewise_hermite_generator(
         *converted.mesh,
@@ -152,7 +158,8 @@ struct ConvertedManifoldMesh {
         max_curvature,
         curvature_tolerance,
         extension_step_world,
-        outer_iterations
+        outer_iterations,
+        initialization_options
     );
 
     py::module_ parametrization_module = py::module_::import("autorigami.parametrization");
@@ -180,6 +187,8 @@ struct ConvertedManifoldMesh {
     run_data["input_curvature_tolerance"] = curvature_tolerance;
     run_data["input_extension_step_world"] = extension_step_world;
     run_data["input_outer_iterations"] = outer_iterations;
+    run_data["input_use_single_seed"] = use_single_seed;
+    run_data["input_initial_heading_angle_rad"] = initial_heading_angle_rad;
 
     return py::make_tuple(piecewise_hermite_class(**kwargs), run_data);
 }
@@ -205,6 +214,8 @@ void register_generator_bindings(py::module_& module) {
         py::arg("max_curvature") = 1e6,
         py::arg("curvature_tolerance") = 0.0,
         py::arg("extension_step_world") = 0.5,
-        py::arg("outer_iterations") = 4
+        py::arg("outer_iterations") = 4,
+        py::arg("use_single_seed") = false,
+        py::arg("initial_heading_angle_rad") = 0.0
     );
 }

@@ -13,6 +13,11 @@ def convert_trimesh_to_manifold_surface_mesh(
     vertices: FloatArray,
     faces: IndexArray,
 ) -> ManifoldMeshInfo: ...
+def compute_acap_toolpath_stats(
+    points: FloatArray,
+    minimum_separation_world: float,
+    nonlocal_window_world: float,
+) -> dict[str, int | float]: ...
 def piecewise_hermite_generator(
     vertices: FloatArray,
     faces: IndexArray,
@@ -24,6 +29,8 @@ def piecewise_hermite_generator(
     curvature_tolerance: float = 0.0,
     extension_step_world: float = 0.5,
     outer_iterations: int = 4,
+    use_single_seed: bool = False,
+    initial_heading_angle_rad: float = 0.0,
 ) -> tuple[PiecewiseHermite, GeneratorRunData]: ...
 def validate_polyline_nonlocal_distance(
     points: FloatArray,

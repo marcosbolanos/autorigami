@@ -21,6 +21,7 @@ struct EndOfSplineStepResult {
     geometrycentral::surface::VertexPositionGeometry& geometry,
     const geometrycentral::surface::SurfacePoint& seed_surface,
     const GeneratorAxis& axis,
+    double initial_heading_angle_rad = 0.0,
     double spacing = 2.6,
     double max_curvature = 1e6,
     double curvature_tolerance = 0.0
