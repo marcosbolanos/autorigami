@@ -63,6 +63,8 @@ class SpiralMiddleFunnel(SpiralObject):
     length: float
     phase_offset: float = 0.0
     inward_progress_offset: float = 0.0
+    inner_circle_bridge: bool = False
+    bridge_crossing: bool = False
 
     def get_local_xy(self, position: float) -> tuple[float, float]:
         local_angle = self.phase_offset + 2.0 * math.pi * self.winding_frequency * position
@@ -78,7 +80,19 @@ class SpiralMiddleFunnel(SpiralObject):
             u = (q - 0.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
             x = side_center_x * (1.0 - 2.0 * u)
-            y = self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
+            if self.bridge_crossing:
+                y = self.y_radius * (
+                    1.0 - (0.95 + 1.05 * position) * math.sin(math.pi * u) ** 2
+                )
+            elif self.inner_circle_bridge:
+                inner_radius = 2.0 * side_center_x
+                y = (
+                    self.y_radius
+                    + math.sqrt(inner_radius * inner_radius - side_center_x * side_center_x)
+                    - math.sqrt(inner_radius * inner_radius - x * x)
+                )
+            else:
+                y = self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
         elif q < 1.5 * math.pi:
             arc_angle = 0.5 * math.pi + 2.0 * (q - math.pi)
             x = -side_center_x + self.y_radius * math.cos(arc_angle)
@@ -87,7 +101,19 @@ class SpiralMiddleFunnel(SpiralObject):
             u = (q - 1.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
             x = side_center_x * (-1.0 + 2.0 * u)
-            y = -self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
+            if self.bridge_crossing:
+                y = -self.y_radius * (
+                    1.0 - (0.95 + 1.05 * position) * math.sin(math.pi * u) ** 2
+                )
+            elif self.inner_circle_bridge:
+                inner_radius = 2.0 * side_center_x
+                y = (
+                    -self.y_radius
+                    - math.sqrt(inner_radius * inner_radius - side_center_x * side_center_x)
+                    + math.sqrt(inner_radius * inner_radius - x * x)
+                )
+            else:
+                y = -self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
         return x, y
 
     def get_point(self, position: float) -> Vector3:
@@ -142,13 +168,14 @@ def generate_full_spiral():
     top_funnel = SpiralMiddleFunnel(
         starting_angle=middle_funnel.starting_angle,
         starting_coords=current_coords,
-        winding_frequency=winding_frequency * middle_scale,
+        winding_frequency=0.5 * winding_frequency * middle_scale,
         length=length * middle_scale,
         starting_x_radius=radius * middle_funnel.x_radius_increase_factor,
         x_radius_increase_factor=math.sqrt(3),
         y_radius=radius,
         phase_offset=current_angle - middle_funnel.starting_angle,
         inward_progress_offset=1.0,
+        bridge_crossing=True,
     )
     new_polyline, current_angle = top_funnel.discretize(10000)
     polyline = np.concatenate((polyline, new_polyline[1:]), axis=0)
