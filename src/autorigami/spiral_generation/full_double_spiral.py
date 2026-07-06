@@ -115,7 +115,6 @@ class TopSegment(SpiralObject):
     winding_frequency: float
     length: float
     phase_offset: float
-    final_bridge_pinch: float
 
     def get_point(self, position: float) -> Vector3:
         assert 0 <= position <= 1, "position must be between 0 and 1"
@@ -124,27 +123,59 @@ class TopSegment(SpiralObject):
         x_radius = self.starting_x_radius * (1.0 + position * (self.x_radius_increase_factor - 1.0))
         q = (local_angle + 0.25 * math.pi) % (2.0 * math.pi)
         side_center_x = x_radius - self.y_radius
+        geometry_position = position * position * (3.0 - 2.0 * position)
+        join_angle = 0.5 * math.pi + 0.5 * math.pi * geometry_position
 
         if q < 0.5 * math.pi:
-            arc_angle = -0.5 * math.pi + 2.0 * q
-            x = side_center_x + self.y_radius * math.cos(arc_angle)
-            y = self.y_radius * math.sin(arc_angle)
+            old_arc_angle = -0.5 * math.pi + 2.0 * q
+            new_arc_angle = -join_angle + (q / (0.5 * math.pi)) * 2.0 * join_angle
+            old_x = side_center_x + self.y_radius * math.cos(old_arc_angle)
+            old_y = self.y_radius * math.sin(old_arc_angle)
+            new_x = side_center_x + self.y_radius * math.cos(new_arc_angle)
+            new_y = self.y_radius * math.sin(new_arc_angle)
+            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
+            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
         elif q < math.pi:
             u = (q - 0.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
-            x = side_center_x * (1.0 - 2.0 * u)
-            bridge_pinch = 0.95 + (self.final_bridge_pinch - 0.95) * position
-            y = self.y_radius * (1.0 - bridge_pinch * math.sin(math.pi * u) ** 2)
+            old_x = side_center_x * (1.0 - 2.0 * u)
+            old_y = self.y_radius * (1.0 - 0.95 * math.sin(math.pi * u) ** 2)
+            if math.isclose(math.cos(join_angle), 0.0, abs_tol=1e-6):
+                new_x = old_x
+                new_y = old_y
+            else:
+                bridge_radius = -(side_center_x + self.y_radius * math.cos(join_angle)) / math.cos(join_angle)
+                bridge_center_y = self.y_radius * math.sin(join_angle) + bridge_radius * math.sin(join_angle)
+                bridge_angle = join_angle - math.pi + u * (math.pi - 2.0 * join_angle)
+                new_x = bridge_radius * math.cos(bridge_angle)
+                new_y = bridge_center_y + bridge_radius * math.sin(bridge_angle)
+            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
+            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
         elif q < 1.5 * math.pi:
-            arc_angle = 0.5 * math.pi + 2.0 * (q - math.pi)
-            x = -side_center_x + self.y_radius * math.cos(arc_angle)
-            y = self.y_radius * math.sin(arc_angle)
+            old_arc_angle = 0.5 * math.pi + 2.0 * (q - math.pi)
+            new_arc_angle = math.pi - join_angle + ((q - math.pi) / (0.5 * math.pi)) * 2.0 * join_angle
+            old_x = -side_center_x + self.y_radius * math.cos(old_arc_angle)
+            old_y = self.y_radius * math.sin(old_arc_angle)
+            new_x = -side_center_x + self.y_radius * math.cos(new_arc_angle)
+            new_y = self.y_radius * math.sin(new_arc_angle)
+            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
+            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
         else:
             u = (q - 1.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
-            x = side_center_x * (-1.0 + 2.0 * u)
-            bridge_pinch = 0.95 + (self.final_bridge_pinch - 0.95) * position
-            y = -self.y_radius * (1.0 - bridge_pinch * math.sin(math.pi * u) ** 2)
+            old_x = side_center_x * (-1.0 + 2.0 * u)
+            old_y = -self.y_radius * (1.0 - 0.95 * math.sin(math.pi * u) ** 2)
+            if math.isclose(math.cos(join_angle), 0.0, abs_tol=1e-6):
+                new_x = old_x
+                new_y = old_y
+            else:
+                bridge_radius = -(side_center_x + self.y_radius * math.cos(join_angle)) / math.cos(join_angle)
+                bridge_center_y = -self.y_radius * math.sin(join_angle) - bridge_radius * math.sin(join_angle)
+                bridge_angle = join_angle + u * (math.pi - 2.0 * join_angle)
+                new_x = bridge_radius * math.cos(bridge_angle)
+                new_y = bridge_center_y + bridge_radius * math.sin(bridge_angle)
+            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
+            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
 
         x, y = (
             x * math.cos(self.starting_angle) - y * math.sin(self.starting_angle),
@@ -153,8 +184,9 @@ class TopSegment(SpiralObject):
 
         start_q = (self.phase_offset + 0.25 * math.pi) % (2.0 * math.pi)
         start_side_center_x = self.starting_x_radius - self.y_radius
+        start_join_angle = 0.5 * math.pi
         if start_q < 0.5 * math.pi:
-            start_arc_angle = -0.5 * math.pi + 2.0 * start_q
+            start_arc_angle = -start_join_angle + (start_q / (0.5 * math.pi)) * 2.0 * start_join_angle
             start_x = start_side_center_x + self.y_radius * math.cos(start_arc_angle)
             start_y = self.y_radius * math.sin(start_arc_angle)
         elif start_q < math.pi:
@@ -163,7 +195,7 @@ class TopSegment(SpiralObject):
             start_x = start_side_center_x * (1.0 - 2.0 * start_u)
             start_y = self.y_radius * (1.0 - 0.95 * math.sin(math.pi * start_u) ** 2)
         elif start_q < 1.5 * math.pi:
-            start_arc_angle = 0.5 * math.pi + 2.0 * (start_q - math.pi)
+            start_arc_angle = math.pi - start_join_angle + ((start_q - math.pi) / (0.5 * math.pi)) * 2.0 * start_join_angle
             start_x = -start_side_center_x + self.y_radius * math.cos(start_arc_angle)
             start_y = self.y_radius * math.sin(start_arc_angle)
         else:
@@ -221,7 +253,6 @@ def generate_full_spiral():
         x_radius_increase_factor=math.sqrt(3),
         y_radius=radius,
         phase_offset=current_angle - middle_segment.starting_angle,
-        final_bridge_pinch=2.0,
     )
     new_polyline, current_angle = top_segment.discretize(10000)
     polyline = np.concatenate((polyline, new_polyline[1:]), axis=0)
