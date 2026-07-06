@@ -69,6 +69,7 @@ class SpiralMiddleFunnel(SpiralObject):
         local_angle = angle - self.starting_angle
         # The key change is that we increasingly distort the x radius
         x_radius = self.starting_x_radius * (1.0 + position * (self.x_radius_increase_factor - 1.0))
+        inward_position = max(0.0, (position - 0.2) / 0.8)
         center = np.array([0.0, 0.0, self.starting_coords[2]], dtype=np.float32)
         q = (local_angle + 0.25 * math.pi) % (2.0 * math.pi)
         side_center_x = x_radius - self.y_radius
@@ -80,7 +81,7 @@ class SpiralMiddleFunnel(SpiralObject):
             u = (q - 0.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
             x = side_center_x * (1.0 - 2.0 * u)
-            y = self.y_radius * (1.0 - 0.95 * position * math.sin(math.pi * u) ** 2)
+            y = self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
         elif q < 1.5 * math.pi:
             arc_angle = 0.5 * math.pi + 2.0 * (q - math.pi)
             x = -side_center_x + self.y_radius * math.cos(arc_angle)
@@ -89,7 +90,7 @@ class SpiralMiddleFunnel(SpiralObject):
             u = (q - 1.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
             x = side_center_x * (-1.0 + 2.0 * u)
-            y = -self.y_radius * (1.0 - 0.95 * position * math.sin(math.pi * u) ** 2)
+            y = -self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
         x, y = (
             x * math.cos(self.starting_angle) - y * math.sin(self.starting_angle),
             x * math.sin(self.starting_angle) + y * math.cos(self.starting_angle),
@@ -101,7 +102,7 @@ class SpiralMiddleFunnel(SpiralObject):
 
 def generate_full_spiral():
     nm_per_full_turn = 2.6
-    length = 90
+    length = 40
     radius = 16
     winding_frequency = length / nm_per_full_turn
     
