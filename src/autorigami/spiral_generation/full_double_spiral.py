@@ -61,16 +61,13 @@ class SpiralMiddleFunnel(SpiralObject):
     y_radius: float
     winding_frequency: float
     length: float
+    phase_offset: float = 0.0
+    inward_progress_offset: float = 0.0
 
-    def get_point(self, position: float) -> Vector3:
-        assert 0 <= position <= 1, "position must be between 0 and 1"
-
-        angle = self.starting_angle + 2.0 * math.pi * self.winding_frequency * position
-        local_angle = angle - self.starting_angle
-        # The key change is that we increasingly distort the x radius
+    def get_local_xy(self, position: float) -> tuple[float, float]:
+        local_angle = self.phase_offset + 2.0 * math.pi * self.winding_frequency * position
         x_radius = self.starting_x_radius * (1.0 + position * (self.x_radius_increase_factor - 1.0))
-        inward_position = max(0.0, (position - 0.2) / 0.8)
-        center = np.array([0.0, 0.0, self.starting_coords[2]], dtype=np.float32)
+        inward_position = min(1.0, max(0.0, (position + self.inward_progress_offset - 0.2) / 0.8))
         q = (local_angle + 0.25 * math.pi) % (2.0 * math.pi)
         side_center_x = x_radius - self.y_radius
         if q < 0.5 * math.pi:
@@ -91,10 +88,22 @@ class SpiralMiddleFunnel(SpiralObject):
             u = u * u * (3.0 - 2.0 * u)
             x = side_center_x * (-1.0 + 2.0 * u)
             y = -self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
+        return x, y
+
+    def get_point(self, position: float) -> Vector3:
+        assert 0 <= position <= 1, "position must be between 0 and 1"
+
+        x, y = self.get_local_xy(position)
         x, y = (
             x * math.cos(self.starting_angle) - y * math.sin(self.starting_angle),
             x * math.sin(self.starting_angle) + y * math.cos(self.starting_angle),
         )
+        start_x, start_y = self.get_local_xy(0.0)
+        start_x, start_y = (
+            start_x * math.cos(self.starting_angle) - start_y * math.sin(self.starting_angle),
+            start_x * math.sin(self.starting_angle) + start_y * math.cos(self.starting_angle),
+        )
+        center = self.starting_coords - np.array([start_x, start_y, 0.0], dtype=np.float32)
         z = self.length * position
         point = center + np.array([x, y, z], dtype=np.float32)
         return point
@@ -127,6 +136,21 @@ def generate_full_spiral():
         y_radius=radius
     )
     new_polyline, current_angle = middle_funnel.discretize(10000)
+    polyline = np.concatenate((polyline, new_polyline[1:]), axis=0)
+    current_coords = polyline[-1]
+
+    top_funnel = SpiralMiddleFunnel(
+        starting_angle=middle_funnel.starting_angle,
+        starting_coords=current_coords,
+        winding_frequency=winding_frequency * middle_scale,
+        length=length * middle_scale,
+        starting_x_radius=radius * middle_funnel.x_radius_increase_factor,
+        x_radius_increase_factor=math.sqrt(3),
+        y_radius=radius,
+        phase_offset=current_angle - middle_funnel.starting_angle,
+        inward_progress_offset=1.0,
+    )
+    new_polyline, current_angle = top_funnel.discretize(10000)
     polyline = np.concatenate((polyline, new_polyline[1:]), axis=0)
     
     return polyline
