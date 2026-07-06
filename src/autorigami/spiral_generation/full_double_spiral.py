@@ -125,6 +125,7 @@ class TopSegment(SpiralObject):
         side_center_x = x_radius - self.y_radius
         geometry_position = position * position * (3.0 - 2.0 * position)
         join_angle = 0.5 * math.pi + 0.5 * math.pi * geometry_position
+        bridge_y_scale = 0.65
 
         if q < 0.5 * math.pi:
             old_arc_angle = -0.5 * math.pi + 2.0 * q
@@ -144,11 +145,15 @@ class TopSegment(SpiralObject):
                 new_x = old_x
                 new_y = old_y
             else:
-                bridge_radius = -(side_center_x + self.y_radius * math.cos(join_angle)) / math.cos(join_angle)
-                bridge_center_y = self.y_radius * math.sin(join_angle) + bridge_radius * math.sin(join_angle)
-                bridge_angle = join_angle - math.pi + u * (math.pi - 2.0 * join_angle)
-                new_x = bridge_radius * math.cos(bridge_angle)
-                new_y = bridge_center_y + bridge_radius * math.sin(bridge_angle)
+                bridge_start_x = side_center_x + self.y_radius * math.cos(join_angle)
+                bridge_start_y = self.y_radius * math.sin(join_angle)
+                bridge_start_angle = math.atan(bridge_y_scale * math.tan(join_angle))
+                bridge_x_radius = bridge_start_x / math.cos(bridge_start_angle)
+                bridge_y_radius = bridge_y_scale * bridge_x_radius
+                bridge_center_y = bridge_start_y - bridge_y_radius * math.sin(bridge_start_angle)
+                bridge_angle = bridge_start_angle + u * (-math.pi - 2.0 * bridge_start_angle)
+                new_x = bridge_x_radius * math.cos(bridge_angle)
+                new_y = bridge_center_y + bridge_y_radius * math.sin(bridge_angle)
             x = old_x * (1.0 - geometry_position) + new_x * geometry_position
             y = old_y * (1.0 - geometry_position) + new_y * geometry_position
         elif q < 1.5 * math.pi:
@@ -169,11 +174,15 @@ class TopSegment(SpiralObject):
                 new_x = old_x
                 new_y = old_y
             else:
-                bridge_radius = -(side_center_x + self.y_radius * math.cos(join_angle)) / math.cos(join_angle)
-                bridge_center_y = -self.y_radius * math.sin(join_angle) - bridge_radius * math.sin(join_angle)
-                bridge_angle = join_angle + u * (math.pi - 2.0 * join_angle)
-                new_x = bridge_radius * math.cos(bridge_angle)
-                new_y = bridge_center_y + bridge_radius * math.sin(bridge_angle)
+                bridge_start_x = side_center_x + self.y_radius * math.cos(join_angle)
+                bridge_start_y = self.y_radius * math.sin(join_angle)
+                bridge_start_angle = math.atan(bridge_y_scale * math.tan(join_angle))
+                bridge_x_radius = bridge_start_x / math.cos(bridge_start_angle)
+                bridge_y_radius = bridge_y_scale * bridge_x_radius
+                bridge_center_y = -bridge_start_y + bridge_y_radius * math.sin(bridge_start_angle)
+                bridge_angle = math.pi + bridge_start_angle + u * (-math.pi - 2.0 * bridge_start_angle)
+                new_x = bridge_x_radius * math.cos(bridge_angle)
+                new_y = bridge_center_y + bridge_y_radius * math.sin(bridge_angle)
             x = old_x * (1.0 - geometry_position) + new_x * geometry_position
             y = old_y * (1.0 - geometry_position) + new_y * geometry_position
 
