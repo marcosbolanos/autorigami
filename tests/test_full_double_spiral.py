@@ -2,12 +2,12 @@ import numpy as np
 
 from autorigami.spiral_generation.full_double_spiral import (
     SpiralBase,
-    SpiralMiddleFunnel,
+    MiddleSegment,
     generate_full_spiral,
 )
 
 
-def test_generate_full_spiral_concatenates_middle_funnel() -> None:
+def test_generate_full_spiral_concatenates_segments() -> None:
     polyline = generate_full_spiral()
 
     assert polyline.shape == (29998, 3)
@@ -20,7 +20,7 @@ def test_discretize_returns_absolute_final_angle_for_chaining() -> None:
     base = SpiralBase(starting_angle=1.0, radius=2.0, winding_frequency=3.0, length=4.0)
     _, base_final_angle = base.discretize(10)
 
-    middle = SpiralMiddleFunnel(
+    middle = MiddleSegment(
         starting_angle=base_final_angle,
         starting_coords=np.array([0.0, 0.0, 4.0], dtype=np.float32),
         starting_x_radius=2.0,
