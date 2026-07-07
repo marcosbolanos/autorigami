@@ -1,4 +1,7 @@
+import argparse
+from datetime import datetime
 import math
+from pathlib import Path
 import sys
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -270,9 +273,23 @@ def generate_full_spiral():
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--save", action="store_true")
+    args = parser.parse_args()
+
     dna_molecule_radius = 1.05
     polyline = generate_full_spiral()
     tube = pv.lines_from_points(polyline).tube(radius=dna_molecule_radius)
+
+    if args.save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = Path("outputs") / f"full_double_spiral_{timestamp}"
+        output_dir.mkdir(parents=True)
+        np.save(output_dir / "polyline.npy", polyline)
+        tube.save(output_dir / "full_double_spiral.stl")
+        print(output_dir)
+        return 0
+
     plotter = pv.Plotter()
     plotter.add_mesh(tube) # type: ignore
     try:
