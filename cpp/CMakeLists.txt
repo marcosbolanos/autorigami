@@ -4,7 +4,14 @@ find_package(pybind11 CONFIG REQUIRED)
 
 option(AUTORIGAMI_BUILD_TESTS "Build native C++ tests" ON)
 
-set(AUTORIGAMI_CLANG_TIDY_CMD clang-tidy;-p=${CMAKE_BINARY_DIR};--warnings-as-errors=*)
+set(
+    AUTORIGAMI_CLANG_TIDY_CMD
+    clang-tidy
+    -p=${CMAKE_BINARY_DIR}
+    --checks=clang-analyzer-*
+    --header-filter=${CMAKE_SOURCE_DIR}/cpp/.*
+    --warnings-as-errors=*
+)
 
 pybind11_add_module(
     _native

@@ -6,13 +6,11 @@ import sys
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from jaxtyping import Float32
 import pyvista as pv
 import numpy as np
 import trimesh
 
-type Vector3 = Float32[np.ndarray, "3"]  # noqa: F722
-type Polyline = Float32[np.ndarray, "n 3"]  # noqa: F722
+from autorigami.types import Vector3, Polyline
 
 LIGHTWEIGHT_GLB_MAX_BYTES = 1_000_000
 

@@ -4,6 +4,7 @@ from typing import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
+from jaxtyping import Float32
 
-FloatArray: TypeAlias = npt.NDArray[np.float64]
-IndexArray: TypeAlias = npt.NDArray[np.int64]
+type Vector3 = Float32[np.ndarray, "3"]  # noqa: F722
+type Polyline = Float32[np.ndarray, "n 3"]  # noqa: F722
