@@ -16,20 +16,31 @@ def test_generate_full_spiral_concatenates_segments() -> None:
     assert polyline[-1, 2] > polyline[19998, 2]
 
 
-def test_discretize_returns_absolute_final_angle_for_chaining() -> None:
-    base = SpiralBase(starting_angle=1.0, radius=2.0, winding_frequency=3.0, length=4.0)
-    _, base_final_angle = base.discretize(10)
+def test_get_points_accepts_scalar_and_array_inputs() -> None:
+    base = SpiralBase(orientation_angle=1.0, radius=2.0, turns=3.0, height=4.0)
+    positions = np.linspace(0.0, 1.0, 10, dtype=np.float32)
+    base_polyline = base.get_points(positions)
+    base_point = base.get_points(np.float32(0.5))
+
+    assert base_polyline.shape == (10, 3)
+    assert base_point.shape == (3,)
+
+    base_final_angle = float(base.orientation_angle + 2.0 * np.pi * base.turns)
 
     middle = MiddleSegment(
-        starting_angle=base_final_angle,
-        starting_coords=np.array([0.0, 0.0, 4.0], dtype=np.float32),
-        starting_x_radius=2.0,
-        x_radius_increase_factor=2.0,
+        orientation_angle=base_final_angle,
+        anchor_point=np.array([0.0, 0.0, 4.0], dtype=np.float32),
+        start_x_radius=2.0,
+        end_x_radius_scale=2.0,
         y_radius=2.0,
-        winding_frequency=3.0,
-        length=4.0,
+        turns=3.0,
+        height=4.0,
     )
-    _, middle_final_angle = middle.discretize(10)
+    middle_polyline = middle.get_points(positions)
+    middle_point = middle.get_points(0.5)
+    middle_final_angle = float(middle.orientation_angle + 2.0 * np.pi * middle.turns)
 
+    assert middle_polyline.shape == (10, 3)
+    assert middle_point.shape == (3,)
     assert np.isclose(base_final_angle, 1.0 + 6.0 * np.pi)
     assert np.isclose(middle_final_angle, 1.0 + 12.0 * np.pi)

@@ -1,6 +1,3 @@
-"""Spiral generation package."""
+from autorigami.spiral_generation.full_double_spiral import generate_full_spiral
 
-from .ode import generate_tight_spiral_ode
-from .simple_spiral import generate_spiral_on_surface
-
-__all__ = ["generate_spiral_on_surface", "generate_tight_spiral_ode"]
+__all__ = ["generate_full_spiral"]

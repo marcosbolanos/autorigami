@@ -8,198 +8,317 @@ from abc import ABC, abstractmethod
 
 import pyvista as pv
 import numpy as np
-import trimesh
+import numpy.typing as npt
 
+from autorigami.mesh_io import save_lightweight_glb
 from autorigami.types import Vector3, Polyline
 
-LIGHTWEIGHT_GLB_MAX_BYTES = 1_000_000
+Positions = npt.NDArray[np.float32]
 
 
-# Generic spiral class, get_point() is the parametrization
+# Generic spiral class, get_points() is the parametrization
 @dataclass
 class SpiralObject(ABC):
-    starting_angle: float
-    winding_frequency: float
-    length: float
+    """
+    attributes:
+    orientation_angle: angle to start drawing the spiral, in radians
+    turns: how many times the spiral turns across its height
+    height: how high the spiral goes, in nm
 
-    # The parametrization function, to be defined by inheriting classes
+    methods:
+    get_points: the parametrization of the spiral, gamma(t)
+    """
+
+    orientation_angle: float
+    turns: float
+    height: float
+
     @abstractmethod
-    def get_point(self, position: float) -> Vector3:
-        ...
+    def get_points(
+        self,
+        positions: float | np.float32 | Positions,
+    ) -> Vector3 | Polyline:
+        """Return points for normalized positions in [0, 1].
 
-    # Discretization is the same for every type of spiral
-    def discretize(self, n_samples: int) -> tuple[Polyline, float]:
-        positions = np.linspace(0.0, 1.0, n_samples, dtype=np.float32)
-        polyline: Polyline = np.array([self.get_point(position) for position in positions])
-        # We track the final angle to chain together multiple spirals
-        final_angle = float(self.starting_angle + 2.0 * math.pi * self.winding_frequency * positions[-1])
-        return polyline, final_angle
+        positions: can be either a float or an array of floats. Returns spiral coordinates for every position
+        """
 
 
 # Base of the spiral, this is a simple cylinder-shaped one
 @dataclass
 class SpiralBase(SpiralObject):
-    starting_angle: float
+    orientation_angle: float
     radius: float
-    winding_frequency: float
-    length: float
+    turns: float
+    height: float
 
-    def get_point(self, position: float) -> Vector3:
-        assert 0 <= position <= 1, "position must be between 0 and 1"
+    def get_points(
+        self,
+        positions: float | np.float32 | Positions,
+    ) -> Vector3 | Polyline:
+        scalar_input = np.isscalar(positions)
+        positions = np.array(
+            [positions] if scalar_input else positions, dtype=np.float32
+        )
+        assert positions.ndim == 1, "positions must be one-dimensional"
+        assert np.all((0.0 <= positions) & (positions <= 1.0)), (
+            "positions must be between 0 and 1"
+        )
 
         # Angle is a linear function of position
-        angle = self.starting_angle + 2.0 * math.pi * self.winding_frequency * position
-        x = self.radius * math.cos(angle)
-        y = self.radius * math.sin(angle)
-        z = self.length * position
-        point = np.array([x, y, z], dtype=np.float32)
-        return point
+        angle = self.orientation_angle + 2.0 * math.pi * self.turns * positions
+        # x and y are radius times sines and cosines of the angle, while z is linear wrt position
+        x = self.radius * np.cos(angle)
+        y = self.radius * np.sin(angle)
+        z = self.height * positions
+        polyline: Polyline = np.column_stack((x, y, z)).astype(np.float32)
+        return polyline[0] if scalar_input else polyline
+
 
 @dataclass
 class MiddleSegment(SpiralObject):
-    starting_angle: float
-    starting_coords: Vector3
-    starting_x_radius: float
-    x_radius_increase_factor: float
+    orientation_angle: float
+    anchor_point: Vector3
+    start_x_radius: float
+    end_x_radius_scale: float
     y_radius: float
-    winding_frequency: float
-    length: float
+    turns: float
+    height: float
 
-    def get_point(self, position: float) -> Vector3:
-        assert 0 <= position <= 1, "position must be between 0 and 1"
-
-        local_angle = 2.0 * math.pi * self.winding_frequency * position
-        x_radius = self.starting_x_radius * (1.0 + position * (self.x_radius_increase_factor - 1.0))
-        inward_position = min(1.0, max(0.0, (position - 0.2) / 0.8))
-        q = (local_angle + 0.25 * math.pi) % (2.0 * math.pi)
-        side_center_x = x_radius - self.y_radius
-
-        if q < 0.5 * math.pi:
-            arc_angle = -0.5 * math.pi + 2.0 * q
-            x = side_center_x + self.y_radius * math.cos(arc_angle)
-            y = self.y_radius * math.sin(arc_angle)
-        elif q < math.pi:
-            u = (q - 0.5 * math.pi) / (0.5 * math.pi)
-            u = u * u * (3.0 - 2.0 * u)
-            x = side_center_x * (1.0 - 2.0 * u)
-            y = self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
-        elif q < 1.5 * math.pi:
-            arc_angle = 0.5 * math.pi + 2.0 * (q - math.pi)
-            x = -side_center_x + self.y_radius * math.cos(arc_angle)
-            y = self.y_radius * math.sin(arc_angle)
-        else:
-            u = (q - 1.5 * math.pi) / (0.5 * math.pi)
-            u = u * u * (3.0 - 2.0 * u)
-            x = side_center_x * (-1.0 + 2.0 * u)
-            y = -self.y_radius * (1.0 - 0.95 * inward_position * math.sin(math.pi * u) ** 2)
-
-        x, y = (
-            x * math.cos(self.starting_angle) - y * math.sin(self.starting_angle),
-            x * math.sin(self.starting_angle) + y * math.cos(self.starting_angle),
+    def get_points(
+        self,
+        positions: float | np.float32 | Positions,
+    ) -> Vector3 | Polyline:
+        scalar_input = np.isscalar(positions)
+        positions = np.array(
+            [positions] if scalar_input else positions, dtype=np.float32
         )
-        start_x = self.starting_x_radius
+        assert positions.ndim == 1, "positions must be one-dimensional"
+        assert np.all((0.0 <= positions) & (positions <= 1.0)), (
+            "positions must be between 0 and 1"
+        )
+
+        local_angle = 2.0 * math.pi * self.turns * positions
+        x_radius = self.start_x_radius * (
+            1.0 + positions * (self.end_x_radius_scale - 1.0)
+        )
+        inward_position = np.clip((positions - 0.2) / 0.8, 0.0, 1.0)
+        q = np.mod(local_angle + 0.25 * math.pi, 2.0 * math.pi)
+        side_center_x = x_radius - self.y_radius
+        x = np.empty_like(positions)
+        y = np.empty_like(positions)
+
+        mask = q < 0.5 * math.pi
+        arc_angle = -0.5 * math.pi + 2.0 * q[mask]
+        x[mask] = side_center_x[mask] + self.y_radius * np.cos(arc_angle)
+        y[mask] = self.y_radius * np.sin(arc_angle)
+
+        mask = (0.5 * math.pi <= q) & (q < math.pi)
+        if np.any(mask):
+            u = (q[mask] - 0.5 * math.pi) / (0.5 * math.pi)
+            u = u * u * (3.0 - 2.0 * u)
+            x[mask] = side_center_x[mask] * (1.0 - 2.0 * u)
+            y[mask] = self.y_radius * (
+                1.0 - 0.95 * inward_position[mask] * np.sin(math.pi * u) ** 2
+            )
+
+        mask = (math.pi <= q) & (q < 1.5 * math.pi)
+        arc_angle = 0.5 * math.pi + 2.0 * (q[mask] - math.pi)
+        x[mask] = -side_center_x[mask] + self.y_radius * np.cos(arc_angle)
+        y[mask] = self.y_radius * np.sin(arc_angle)
+
+        mask = 1.5 * math.pi <= q
+        if np.any(mask):
+            u = (q[mask] - 1.5 * math.pi) / (0.5 * math.pi)
+            u = u * u * (3.0 - 2.0 * u)
+            x[mask] = side_center_x[mask] * (-1.0 + 2.0 * u)
+            y[mask] = -self.y_radius * (
+                1.0 - 0.95 * inward_position[mask] * np.sin(math.pi * u) ** 2
+            )
+
+        cos_orientation = math.cos(self.orientation_angle)
+        sin_orientation = math.sin(self.orientation_angle)
+        x, y = (
+            x * cos_orientation - y * sin_orientation,
+            x * sin_orientation + y * cos_orientation,
+        )
+        start_x = self.start_x_radius
         start_y = 0.0
         start_x, start_y = (
-            start_x * math.cos(self.starting_angle) - start_y * math.sin(self.starting_angle),
-            start_x * math.sin(self.starting_angle) + start_y * math.cos(self.starting_angle),
+            start_x * cos_orientation - start_y * sin_orientation,
+            start_x * sin_orientation + start_y * cos_orientation,
         )
-        center = self.starting_coords - np.array([start_x, start_y, 0.0], dtype=np.float32)
-        z = self.length * position
-        point = center + np.array([x, y, z], dtype=np.float32)
-        return point
+        center = self.anchor_point - np.array([start_x, start_y, 0.0], dtype=np.float32)
+        z = self.height * positions
+        polyline: Polyline = center + np.column_stack((x, y, z)).astype(np.float32)
+        return polyline[0] if scalar_input else polyline
 
 
 @dataclass
 class TopSegment(SpiralObject):
-    starting_angle: float
-    starting_coords: Vector3
-    starting_x_radius: float
-    x_radius_increase_factor: float
+    orientation_angle: float
+    anchor_point: Vector3
+    start_x_radius: float
+    end_x_radius_scale: float
     y_radius: float
-    winding_frequency: float
-    length: float
+    turns: float
+    height: float
     phase_offset: float
 
-    def get_point(self, position: float) -> Vector3:
-        assert 0 <= position <= 1, "position must be between 0 and 1"
+    def get_points(
+        self,
+        positions: float | np.float32 | Positions,
+    ) -> Vector3 | Polyline:
+        scalar_input = np.isscalar(positions)
+        positions = np.array(
+            [positions] if scalar_input else positions, dtype=np.float32
+        )
+        assert positions.ndim == 1, "positions must be one-dimensional"
+        assert np.all((0.0 <= positions) & (positions <= 1.0)), (
+            "positions must be between 0 and 1"
+        )
 
-        local_angle = self.phase_offset + 2.0 * math.pi * self.winding_frequency * position
-        x_radius = self.starting_x_radius * (1.0 + position * (self.x_radius_increase_factor - 1.0))
-        q = (local_angle + 0.25 * math.pi) % (2.0 * math.pi)
+        local_angle = self.phase_offset + 2.0 * math.pi * self.turns * positions
+        x_radius = self.start_x_radius * (
+            1.0 + positions * (self.end_x_radius_scale - 1.0)
+        )
+        q = np.mod(local_angle + 0.25 * math.pi, 2.0 * math.pi)
         side_center_x = x_radius - self.y_radius
-        geometry_position = position * position * (3.0 - 2.0 * position)
+        geometry_position = positions * positions * (3.0 - 2.0 * positions)
         join_angle = 0.5 * math.pi + 0.5 * math.pi * geometry_position
         bridge_y_scale = 0.65
+        x = np.empty_like(positions)
+        y = np.empty_like(positions)
 
-        if q < 0.5 * math.pi:
-            old_arc_angle = -0.5 * math.pi + 2.0 * q
-            new_arc_angle = -join_angle + (q / (0.5 * math.pi)) * 2.0 * join_angle
-            old_x = side_center_x + self.y_radius * math.cos(old_arc_angle)
-            old_y = self.y_radius * math.sin(old_arc_angle)
-            new_x = side_center_x + self.y_radius * math.cos(new_arc_angle)
-            new_y = self.y_radius * math.sin(new_arc_angle)
-            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
-            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
-        elif q < math.pi:
-            u = (q - 0.5 * math.pi) / (0.5 * math.pi)
-            u = u * u * (3.0 - 2.0 * u)
-            old_x = side_center_x * (1.0 - 2.0 * u)
-            old_y = self.y_radius * (1.0 - 0.95 * math.sin(math.pi * u) ** 2)
-            if math.isclose(math.cos(join_angle), 0.0, abs_tol=1e-6):
-                new_x = old_x
-                new_y = old_y
-            else:
-                bridge_start_x = side_center_x + self.y_radius * math.cos(join_angle)
-                bridge_start_y = self.y_radius * math.sin(join_angle)
-                bridge_start_angle = math.atan(bridge_y_scale * math.tan(join_angle))
-                bridge_x_radius = bridge_start_x / math.cos(bridge_start_angle)
-                bridge_y_radius = bridge_y_scale * bridge_x_radius
-                bridge_center_y = bridge_start_y - bridge_y_radius * math.sin(bridge_start_angle)
-                bridge_angle = bridge_start_angle + u * (-math.pi - 2.0 * bridge_start_angle)
-                new_x = bridge_x_radius * math.cos(bridge_angle)
-                new_y = bridge_center_y + bridge_y_radius * math.sin(bridge_angle)
-            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
-            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
-        elif q < 1.5 * math.pi:
-            old_arc_angle = 0.5 * math.pi + 2.0 * (q - math.pi)
-            new_arc_angle = math.pi - join_angle + ((q - math.pi) / (0.5 * math.pi)) * 2.0 * join_angle
-            old_x = -side_center_x + self.y_radius * math.cos(old_arc_angle)
-            old_y = self.y_radius * math.sin(old_arc_angle)
-            new_x = -side_center_x + self.y_radius * math.cos(new_arc_angle)
-            new_y = self.y_radius * math.sin(new_arc_angle)
-            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
-            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
-        else:
-            u = (q - 1.5 * math.pi) / (0.5 * math.pi)
-            u = u * u * (3.0 - 2.0 * u)
-            old_x = side_center_x * (-1.0 + 2.0 * u)
-            old_y = -self.y_radius * (1.0 - 0.95 * math.sin(math.pi * u) ** 2)
-            if math.isclose(math.cos(join_angle), 0.0, abs_tol=1e-6):
-                new_x = old_x
-                new_y = old_y
-            else:
-                bridge_start_x = side_center_x + self.y_radius * math.cos(join_angle)
-                bridge_start_y = self.y_radius * math.sin(join_angle)
-                bridge_start_angle = math.atan(bridge_y_scale * math.tan(join_angle))
-                bridge_x_radius = bridge_start_x / math.cos(bridge_start_angle)
-                bridge_y_radius = bridge_y_scale * bridge_x_radius
-                bridge_center_y = -bridge_start_y + bridge_y_radius * math.sin(bridge_start_angle)
-                bridge_angle = math.pi + bridge_start_angle + u * (-math.pi - 2.0 * bridge_start_angle)
-                new_x = bridge_x_radius * math.cos(bridge_angle)
-                new_y = bridge_center_y + bridge_y_radius * math.sin(bridge_angle)
-            x = old_x * (1.0 - geometry_position) + new_x * geometry_position
-            y = old_y * (1.0 - geometry_position) + new_y * geometry_position
+        mask = q < 0.5 * math.pi
+        old_arc_angle = -0.5 * math.pi + 2.0 * q[mask]
+        new_arc_angle = (
+            -join_angle[mask] + (q[mask] / (0.5 * math.pi)) * 2.0 * join_angle[mask]
+        )
+        old_x = side_center_x[mask] + self.y_radius * np.cos(old_arc_angle)
+        old_y = self.y_radius * np.sin(old_arc_angle)
+        new_x = side_center_x[mask] + self.y_radius * np.cos(new_arc_angle)
+        new_y = self.y_radius * np.sin(new_arc_angle)
+        x[mask] = (
+            old_x * (1.0 - geometry_position[mask]) + new_x * geometry_position[mask]
+        )
+        y[mask] = (
+            old_y * (1.0 - geometry_position[mask]) + new_y * geometry_position[mask]
+        )
 
+        mask = (0.5 * math.pi <= q) & (q < math.pi)
+        if np.any(mask):
+            u = (q[mask] - 0.5 * math.pi) / (0.5 * math.pi)
+            u = u * u * (3.0 - 2.0 * u)
+            old_x = side_center_x[mask] * (1.0 - 2.0 * u)
+            old_y = self.y_radius * (1.0 - 0.95 * np.sin(math.pi * u) ** 2)
+            new_x = old_x.copy()
+            new_y = old_y.copy()
+            bridge_mask = ~np.isclose(np.cos(join_angle[mask]), 0.0, atol=1e-6)
+            if np.any(bridge_mask):
+                bridge_start_x = side_center_x[mask][
+                    bridge_mask
+                ] + self.y_radius * np.cos(join_angle[mask][bridge_mask])
+                bridge_start_y = self.y_radius * np.sin(join_angle[mask][bridge_mask])
+                bridge_start_angle = np.arctan(
+                    bridge_y_scale * np.tan(join_angle[mask][bridge_mask])
+                )
+                bridge_x_radius = bridge_start_x / np.cos(bridge_start_angle)
+                bridge_y_radius = bridge_y_scale * bridge_x_radius
+                bridge_center_y = bridge_start_y - bridge_y_radius * np.sin(
+                    bridge_start_angle
+                )
+                bridge_angle = bridge_start_angle + u[bridge_mask] * (
+                    -math.pi - 2.0 * bridge_start_angle
+                )
+                new_x[bridge_mask] = bridge_x_radius * np.cos(bridge_angle)
+                new_y[bridge_mask] = bridge_center_y + bridge_y_radius * np.sin(
+                    bridge_angle
+                )
+            x[mask] = (
+                old_x * (1.0 - geometry_position[mask])
+                + new_x * geometry_position[mask]
+            )
+            y[mask] = (
+                old_y * (1.0 - geometry_position[mask])
+                + new_y * geometry_position[mask]
+            )
+
+        mask = (math.pi <= q) & (q < 1.5 * math.pi)
+        old_arc_angle = 0.5 * math.pi + 2.0 * (q[mask] - math.pi)
+        if np.any(mask):
+            new_arc_angle = (
+                math.pi
+                - join_angle[mask]
+                + ((q[mask] - math.pi) / (0.5 * math.pi)) * 2.0 * join_angle[mask]
+            )
+            old_x = -side_center_x[mask] + self.y_radius * np.cos(old_arc_angle)
+            old_y = self.y_radius * np.sin(old_arc_angle)
+            new_x = -side_center_x[mask] + self.y_radius * np.cos(new_arc_angle)
+            new_y = self.y_radius * np.sin(new_arc_angle)
+            x[mask] = (
+                old_x * (1.0 - geometry_position[mask])
+                + new_x * geometry_position[mask]
+            )
+            y[mask] = (
+                old_y * (1.0 - geometry_position[mask])
+                + new_y * geometry_position[mask]
+            )
+
+        mask = 1.5 * math.pi <= q
+        if np.any(mask):
+            u = (q[mask] - 1.5 * math.pi) / (0.5 * math.pi)
+            u = u * u * (3.0 - 2.0 * u)
+            old_x = side_center_x[mask] * (-1.0 + 2.0 * u)
+            old_y = -self.y_radius * (1.0 - 0.95 * np.sin(math.pi * u) ** 2)
+            new_x = old_x.copy()
+            new_y = old_y.copy()
+            bridge_mask = ~np.isclose(np.cos(join_angle[mask]), 0.0, atol=1e-6)
+            if np.any(bridge_mask):
+                bridge_start_x = side_center_x[mask][
+                    bridge_mask
+                ] + self.y_radius * np.cos(join_angle[mask][bridge_mask])
+                bridge_start_y = self.y_radius * np.sin(join_angle[mask][bridge_mask])
+                bridge_start_angle = np.arctan(
+                    bridge_y_scale * np.tan(join_angle[mask][bridge_mask])
+                )
+                bridge_x_radius = bridge_start_x / np.cos(bridge_start_angle)
+                bridge_y_radius = bridge_y_scale * bridge_x_radius
+                bridge_center_y = -bridge_start_y + bridge_y_radius * np.sin(
+                    bridge_start_angle
+                )
+                bridge_angle = (
+                    math.pi
+                    + bridge_start_angle
+                    + u[bridge_mask] * (-math.pi - 2.0 * bridge_start_angle)
+                )
+                new_x[bridge_mask] = bridge_x_radius * np.cos(bridge_angle)
+                new_y[bridge_mask] = bridge_center_y + bridge_y_radius * np.sin(
+                    bridge_angle
+                )
+            x[mask] = (
+                old_x * (1.0 - geometry_position[mask])
+                + new_x * geometry_position[mask]
+            )
+            y[mask] = (
+                old_y * (1.0 - geometry_position[mask])
+                + new_y * geometry_position[mask]
+            )
+
+        cos_orientation = math.cos(self.orientation_angle)
+        sin_orientation = math.sin(self.orientation_angle)
         x, y = (
-            x * math.cos(self.starting_angle) - y * math.sin(self.starting_angle),
-            x * math.sin(self.starting_angle) + y * math.cos(self.starting_angle),
+            x * cos_orientation - y * sin_orientation,
+            x * sin_orientation + y * cos_orientation,
         )
 
         start_q = (self.phase_offset + 0.25 * math.pi) % (2.0 * math.pi)
-        start_side_center_x = self.starting_x_radius - self.y_radius
+        start_side_center_x = self.start_x_radius - self.y_radius
         start_join_angle = 0.5 * math.pi
         if start_q < 0.5 * math.pi:
-            start_arc_angle = -start_join_angle + (start_q / (0.5 * math.pi)) * 2.0 * start_join_angle
+            start_arc_angle = (
+                -start_join_angle + (start_q / (0.5 * math.pi)) * 2.0 * start_join_angle
+            )
             start_x = start_side_center_x + self.y_radius * math.cos(start_arc_angle)
             start_y = self.y_radius * math.sin(start_arc_angle)
         elif start_q < math.pi:
@@ -208,7 +327,11 @@ class TopSegment(SpiralObject):
             start_x = start_side_center_x * (1.0 - 2.0 * start_u)
             start_y = self.y_radius * (1.0 - 0.95 * math.sin(math.pi * start_u) ** 2)
         elif start_q < 1.5 * math.pi:
-            start_arc_angle = math.pi - start_join_angle + ((start_q - math.pi) / (0.5 * math.pi)) * 2.0 * start_join_angle
+            start_arc_angle = (
+                math.pi
+                - start_join_angle
+                + ((start_q - math.pi) / (0.5 * math.pi)) * 2.0 * start_join_angle
+            )
             start_x = -start_side_center_x + self.y_radius * math.cos(start_arc_angle)
             start_y = self.y_radius * math.sin(start_arc_angle)
         else:
@@ -218,160 +341,73 @@ class TopSegment(SpiralObject):
             start_y = -self.y_radius * (1.0 - 0.95 * math.sin(math.pi * start_u) ** 2)
 
         start_x, start_y = (
-            start_x * math.cos(self.starting_angle) - start_y * math.sin(self.starting_angle),
-            start_x * math.sin(self.starting_angle) + start_y * math.cos(self.starting_angle),
+            start_x * cos_orientation - start_y * sin_orientation,
+            start_x * sin_orientation + start_y * cos_orientation,
         )
-        center = self.starting_coords - np.array([start_x, start_y, 0.0], dtype=np.float32)
-        z = self.length * position
-        point = center + np.array([x, y, z], dtype=np.float32)
-        return point
+        center = self.anchor_point - np.array([start_x, start_y, 0.0], dtype=np.float32)
+        z = self.height * positions
+        polyline: Polyline = center + np.column_stack((x, y, z)).astype(np.float32)
+        return polyline[0] if scalar_input else polyline
 
 
 def generate_full_spiral():
     nm_per_full_turn = 2.6
     length = 40
     radius = 16
-    winding_frequency = length / nm_per_full_turn
-    
+    turns = length / nm_per_full_turn
+    positions = np.linspace(0.0, 1.0, 10000, dtype=np.float32)
+
     # unit: nm
     base = SpiralBase(
-        starting_angle=0,
+        orientation_angle=0,
         radius=radius,
-        winding_frequency=winding_frequency,
-        length=length
+        turns=turns,
+        height=length,
     )
-    polyline, current_angle = base.discretize(10000)
+    polyline = base.get_points(positions)
+    assert polyline.ndim == 2 and polyline.shape[1] == 3, (
+        "polyline must have shape (n, 3)"
+    )
+    current_angle = float(base.orientation_angle + 2.0 * math.pi * base.turns)
     current_coords = polyline[-1]
 
     middle_scale = 1
     middle_segment = MiddleSegment(
-        starting_angle=current_angle,
-        starting_coords=current_coords,
-        winding_frequency=winding_frequency * middle_scale,
-        length=length * middle_scale,
-        starting_x_radius=radius,
-        x_radius_increase_factor=3,
-        y_radius=radius
+        orientation_angle=current_angle,
+        anchor_point=current_coords,
+        turns=turns * middle_scale,
+        height=length * middle_scale,
+        start_x_radius=radius,
+        end_x_radius_scale=3,
+        y_radius=radius,
     )
-    new_polyline, current_angle = middle_segment.discretize(10000)
+    new_polyline = middle_segment.get_points(positions)
+    assert new_polyline.ndim == 2 and new_polyline.shape[1] == 3, (
+        "polyline must have shape (n, 3)"
+    )
+    current_angle = float(
+        middle_segment.orientation_angle + 2.0 * math.pi * middle_segment.turns
+    )
     polyline = np.concatenate((polyline, new_polyline[1:]), axis=0)
     current_coords = polyline[-1]
 
     top_segment = TopSegment(
-        starting_angle=middle_segment.starting_angle,
-        starting_coords=current_coords,
-        winding_frequency=0.5 * winding_frequency * middle_scale,
-        length=length * middle_scale,
-        starting_x_radius=radius * middle_segment.x_radius_increase_factor,
-        x_radius_increase_factor=math.sqrt(3),
+        orientation_angle=middle_segment.orientation_angle,
+        anchor_point=current_coords,
+        turns=0.5 * turns * middle_scale,
+        height=length * middle_scale,
+        start_x_radius=radius * middle_segment.end_x_radius_scale,
+        end_x_radius_scale=math.sqrt(3),
         y_radius=radius,
-        phase_offset=current_angle - middle_segment.starting_angle,
+        phase_offset=current_angle - middle_segment.orientation_angle,
     )
-    new_polyline, current_angle = top_segment.discretize(10000)
+    new_polyline = top_segment.get_points(positions)
+    assert new_polyline.ndim == 2 and new_polyline.shape[1] == 3, (
+        "polyline must have shape (n, 3)"
+    )
     polyline = np.concatenate((polyline, new_polyline[1:]), axis=0)
-    
+
     return polyline
-
-
-def _resample_polyline(polyline: Polyline, n_samples: int) -> Polyline:
-    assert polyline.ndim == 2 and polyline.shape[1] == 3, "polyline must have shape (n, 3)"
-    assert n_samples >= 2, "n_samples must be at least 2"
-
-    segment_lengths = np.linalg.norm(polyline[1:] - polyline[:-1], axis=1)
-    cumulative_lengths = np.concatenate(([0.0], np.cumsum(segment_lengths)))
-    sample_lengths = np.linspace(0.0, cumulative_lengths[-1], n_samples, dtype=np.float32)
-    points = np.column_stack(
-        [
-            np.interp(sample_lengths, cumulative_lengths, polyline[:, axis])
-            for axis in range(3)
-        ]
-    )
-    return points.astype(np.float32)
-
-
-def _tube_mesh_from_polyline(
-    polyline: Polyline,
-    radius: float,
-    radial_sections: int,
-) -> trimesh.Trimesh:
-    assert polyline.ndim == 2 and polyline.shape[1] == 3, "polyline must have shape (n, 3)"
-    assert len(polyline) >= 2, "polyline must contain at least 2 points"
-    assert radius > 0, "radius must be positive"
-    assert radial_sections >= 3, "radial_sections must be at least 3"
-
-    tangents = np.gradient(polyline, axis=0)
-    tangent_norms = np.linalg.norm(tangents, axis=1, keepdims=True)
-    assert np.all(tangent_norms > 0), "polyline must not contain repeated neighboring points"
-    tangents = tangents / tangent_norms
-
-    reference = np.array([0.0, 0.0, 1.0], dtype=np.float32)
-    if abs(float(np.dot(tangents[0], reference))) > 0.9:
-        reference = np.array([0.0, 1.0, 0.0], dtype=np.float32)
-
-    normal = np.cross(tangents[0], reference)
-    normal = normal / np.linalg.norm(normal)
-    binormal = np.cross(tangents[0], normal)
-
-    angles = np.linspace(0.0, 2.0 * math.pi, radial_sections, endpoint=False, dtype=np.float32)
-    unit_circle = np.column_stack((np.cos(angles), np.sin(angles))).astype(np.float32)
-
-    rings: list[np.ndarray] = []
-    for index, tangent in enumerate(tangents):
-        if index > 0:
-            normal = normal - tangent * np.dot(normal, tangent)
-            normal_norm = np.linalg.norm(normal)
-            assert normal_norm > 0, "polyline frame became degenerate"
-            normal = normal / normal_norm
-            binormal = np.cross(tangent, normal)
-        ring = (
-            polyline[index]
-            + radius * unit_circle[:, 0, None] * normal
-            + radius * unit_circle[:, 1, None] * binormal
-        )
-        rings.append(ring)
-
-    vertices = np.vstack(rings).astype(np.float32)
-    faces: list[list[int]] = []
-    for ring_index in range(len(polyline) - 1):
-        ring_start = ring_index * radial_sections
-        next_ring_start = (ring_index + 1) * radial_sections
-        for section_index in range(radial_sections):
-            next_section_index = (section_index + 1) % radial_sections
-            faces.append([ring_start + section_index, next_ring_start + section_index, next_ring_start + next_section_index])
-            faces.append([ring_start + section_index, next_ring_start + next_section_index, ring_start + next_section_index])
-
-    start_center = len(vertices)
-    end_center = start_center + 1
-    vertices = np.vstack((vertices, polyline[0], polyline[-1])).astype(np.float32)
-    end_ring_start = (len(polyline) - 1) * radial_sections
-    for section_index in range(radial_sections):
-        next_section_index = (section_index + 1) % radial_sections
-        faces.append([start_center, next_section_index, section_index])
-        faces.append([end_center, end_ring_start + section_index, end_ring_start + next_section_index])
-
-    mesh = trimesh.Trimesh(vertices=vertices, faces=np.array(faces, dtype=np.int64), process=False)
-    mesh.visual.vertex_colors = np.tile(np.array([[190, 190, 190, 255]], dtype=np.uint8), (mesh.vertices.shape[0], 1))
-    return mesh
-
-
-def save_lightweight_glb(
-    polyline: Polyline,
-    path: Path,
-    radius: float,
-    max_bytes: int = LIGHTWEIGHT_GLB_MAX_BYTES,
-) -> Path:
-    assert max_bytes > 0, "max_bytes must be positive"
-
-    quality_levels = ((1400, 8), (1000, 8), (800, 7), (600, 6), (450, 6))
-    for n_samples, radial_sections in quality_levels:
-        lightweight_polyline = _resample_polyline(polyline, n_samples)
-        lightweight_mesh = _tube_mesh_from_polyline(lightweight_polyline, radius, radial_sections)
-        lightweight_mesh.export(path)
-        if path.stat().st_size < max_bytes:
-            return path
-
-    file_size = path.stat().st_size
-    raise AssertionError(f"lightweight GLB is {file_size} bytes, expected under {max_bytes} bytes")
 
 
 def main() -> int:
@@ -394,12 +430,14 @@ def main() -> int:
             output_dir / "full_double_spiral_lightweight.glb",
             dna_molecule_radius,
         )
-        print(f"Saved lightweight GLB to {lightweight_glb_path} ({lightweight_glb_path.stat().st_size} bytes)")
+        print(
+            f"Saved lightweight GLB to {lightweight_glb_path} ({lightweight_glb_path.stat().st_size} bytes)"
+        )
         print(output_dir)
         return 0
 
     plotter = pv.Plotter()
-    plotter.add_mesh(tube) # type: ignore
+    plotter.add_mesh(tube)  # type: ignore
     try:
         plotter.show(interactive_update=True, auto_close=False)
         while not plotter._closed:
@@ -409,6 +447,7 @@ def main() -> int:
         return 130
     plotter.close()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
