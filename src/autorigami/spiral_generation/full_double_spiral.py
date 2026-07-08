@@ -84,6 +84,8 @@ class MiddleSegment(SpiralObject):
     y_radius: float
     turns: float
     height: float
+    phase_offset: float = 0.0
+    inward_position_offset: float = 0.0
 
     def get_points(
         self,
@@ -98,11 +100,13 @@ class MiddleSegment(SpiralObject):
             "positions must be between 0 and 1"
         )
 
-        local_angle = 2.0 * math.pi * self.turns * positions
+        local_angle = self.phase_offset + 2.0 * math.pi * self.turns * positions
         x_radius = self.start_x_radius * (
             1.0 + positions * (self.end_x_radius_scale - 1.0)
         )
-        inward_position = np.clip((positions - 0.2) / 0.8, 0.0, 1.0)
+        inward_position = np.clip(
+            (positions + self.inward_position_offset - 0.2) / 0.8, 0.0, 1.0
+        )
         q = np.mod(local_angle + 0.25 * math.pi, 2.0 * math.pi)
         side_center_x = x_radius - self.y_radius
         x = np.empty_like(positions)
@@ -142,8 +146,26 @@ class MiddleSegment(SpiralObject):
             x * cos_orientation - y * sin_orientation,
             x * sin_orientation + y * cos_orientation,
         )
-        start_x = self.start_x_radius
-        start_y = 0.0
+        start_q = (self.phase_offset + 0.25 * math.pi) % (2.0 * math.pi)
+        start_side_center_x = self.start_x_radius - self.y_radius
+        if start_q < 0.5 * math.pi:
+            start_arc_angle = -0.5 * math.pi + 2.0 * start_q
+            start_x = start_side_center_x + self.y_radius * math.cos(start_arc_angle)
+            start_y = self.y_radius * math.sin(start_arc_angle)
+        elif start_q < math.pi:
+            start_u = (start_q - 0.5 * math.pi) / (0.5 * math.pi)
+            start_u = start_u * start_u * (3.0 - 2.0 * start_u)
+            start_x = start_side_center_x * (1.0 - 2.0 * start_u)
+            start_y = self.y_radius * (1.0 - 0.95 * math.sin(math.pi * start_u) ** 2)
+        elif start_q < 1.5 * math.pi:
+            start_arc_angle = 0.5 * math.pi + 2.0 * (start_q - math.pi)
+            start_x = -start_side_center_x + self.y_radius * math.cos(start_arc_angle)
+            start_y = self.y_radius * math.sin(start_arc_angle)
+        else:
+            start_u = (start_q - 1.5 * math.pi) / (0.5 * math.pi)
+            start_u = start_u * start_u * (3.0 - 2.0 * start_u)
+            start_x = start_side_center_x * (-1.0 + 2.0 * start_u)
+            start_y = -self.y_radius * (1.0 - 0.95 * math.sin(math.pi * start_u) ** 2)
         start_x, start_y = (
             start_x * cos_orientation - start_y * sin_orientation,
             start_x * sin_orientation + start_y * cos_orientation,
@@ -178,6 +200,23 @@ class TopSegment(SpiralObject):
             "positions must be between 0 and 1"
         )
 
+        # Instantiate a MiddleSegment, we'll interpolate point coordinates towards the new geometry
+        middle_segment = MiddleSegment(
+            orientation_angle=self.orientation_angle,
+            anchor_point=self.anchor_point,
+            start_x_radius=self.start_x_radius,
+            end_x_radius_scale=self.end_x_radius_scale,
+            y_radius=self.y_radius,
+            turns=self.turns,
+            height=self.height,
+            phase_offset=self.phase_offset,
+            inward_position_offset=1.0,
+        )
+        middle_polyline = middle_segment.get_points(positions)
+        assert middle_polyline.ndim == 2 and middle_polyline.shape[1] == 3, (
+            "middle_polyline must have shape (n, 3)"
+        )
+
         local_angle = self.phase_offset + 2.0 * math.pi * self.turns * positions
         x_radius = self.start_x_radius * (
             1.0 + positions * (self.end_x_radius_scale - 1.0)
@@ -191,38 +230,29 @@ class TopSegment(SpiralObject):
         y = np.empty_like(positions)
 
         mask = q < 0.5 * math.pi
-        old_arc_angle = -0.5 * math.pi + 2.0 * q[mask]
-        new_arc_angle = (
-            -join_angle[mask] + (q[mask] / (0.5 * math.pi)) * 2.0 * join_angle[mask]
-        )
-        old_x = side_center_x[mask] + self.y_radius * np.cos(old_arc_angle)
-        old_y = self.y_radius * np.sin(old_arc_angle)
-        new_x = side_center_x[mask] + self.y_radius * np.cos(new_arc_angle)
-        new_y = self.y_radius * np.sin(new_arc_angle)
-        x[mask] = (
-            old_x * (1.0 - geometry_position[mask]) + new_x * geometry_position[mask]
-        )
-        y[mask] = (
-            old_y * (1.0 - geometry_position[mask]) + new_y * geometry_position[mask]
-        )
+        q_m = q[mask]
+        side_m = side_center_x[mask]
+        join_m = join_angle[mask]
+        angle = -join_m + (q_m / (0.5 * math.pi)) * 2.0 * join_m
+        x[mask] = side_m + self.y_radius * np.cos(angle)
+        y[mask] = self.y_radius * np.sin(angle)
 
         mask = (0.5 * math.pi <= q) & (q < math.pi)
         if np.any(mask):
+            side_m = side_center_x[mask]
+            join_m = join_angle[mask]
             u = (q[mask] - 0.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
-            old_x = side_center_x[mask] * (1.0 - 2.0 * u)
-            old_y = self.y_radius * (1.0 - 0.95 * np.sin(math.pi * u) ** 2)
-            new_x = old_x.copy()
-            new_y = old_y.copy()
-            bridge_mask = ~np.isclose(np.cos(join_angle[mask]), 0.0, atol=1e-6)
+            branch_x = side_m * (1.0 - 2.0 * u)
+            branch_y = self.y_radius * (1.0 - 0.95 * np.sin(math.pi * u) ** 2)
+            bridge_mask = ~np.isclose(np.cos(join_m), 0.0, atol=1e-6)
             if np.any(bridge_mask):
-                bridge_start_x = side_center_x[mask][
-                    bridge_mask
-                ] + self.y_radius * np.cos(join_angle[mask][bridge_mask])
-                bridge_start_y = self.y_radius * np.sin(join_angle[mask][bridge_mask])
-                bridge_start_angle = np.arctan(
-                    bridge_y_scale * np.tan(join_angle[mask][bridge_mask])
+                bridge_join = join_m[bridge_mask]
+                bridge_start_x = side_m[bridge_mask] + self.y_radius * np.cos(
+                    bridge_join
                 )
+                bridge_start_y = self.y_radius * np.sin(bridge_join)
+                bridge_start_angle = np.arctan(bridge_y_scale * np.tan(bridge_join))
                 bridge_x_radius = bridge_start_x / np.cos(bridge_start_angle)
                 bridge_y_radius = bridge_y_scale * bridge_x_radius
                 bridge_center_y = bridge_start_y - bridge_y_radius * np.sin(
@@ -231,57 +261,40 @@ class TopSegment(SpiralObject):
                 bridge_angle = bridge_start_angle + u[bridge_mask] * (
                     -math.pi - 2.0 * bridge_start_angle
                 )
-                new_x[bridge_mask] = bridge_x_radius * np.cos(bridge_angle)
-                new_y[bridge_mask] = bridge_center_y + bridge_y_radius * np.sin(
+                branch_x[bridge_mask] = bridge_x_radius * np.cos(bridge_angle)
+                branch_y[bridge_mask] = bridge_center_y + bridge_y_radius * np.sin(
                     bridge_angle
                 )
-            x[mask] = (
-                old_x * (1.0 - geometry_position[mask])
-                + new_x * geometry_position[mask]
-            )
-            y[mask] = (
-                old_y * (1.0 - geometry_position[mask])
-                + new_y * geometry_position[mask]
-            )
+            x[mask] = branch_x
+            y[mask] = branch_y
 
         mask = (math.pi <= q) & (q < 1.5 * math.pi)
-        old_arc_angle = 0.5 * math.pi + 2.0 * (q[mask] - math.pi)
         if np.any(mask):
-            new_arc_angle = (
-                math.pi
-                - join_angle[mask]
-                + ((q[mask] - math.pi) / (0.5 * math.pi)) * 2.0 * join_angle[mask]
+            q_m = q[mask]
+            side_m = side_center_x[mask]
+            join_m = join_angle[mask]
+            new_angle = (
+                math.pi - join_m + ((q_m - math.pi) / (0.5 * math.pi)) * 2.0 * join_m
             )
-            old_x = -side_center_x[mask] + self.y_radius * np.cos(old_arc_angle)
-            old_y = self.y_radius * np.sin(old_arc_angle)
-            new_x = -side_center_x[mask] + self.y_radius * np.cos(new_arc_angle)
-            new_y = self.y_radius * np.sin(new_arc_angle)
-            x[mask] = (
-                old_x * (1.0 - geometry_position[mask])
-                + new_x * geometry_position[mask]
-            )
-            y[mask] = (
-                old_y * (1.0 - geometry_position[mask])
-                + new_y * geometry_position[mask]
-            )
+            x[mask] = -side_m + self.y_radius * np.cos(new_angle)
+            y[mask] = self.y_radius * np.sin(new_angle)
 
         mask = 1.5 * math.pi <= q
         if np.any(mask):
+            side_m = side_center_x[mask]
+            join_m = join_angle[mask]
             u = (q[mask] - 1.5 * math.pi) / (0.5 * math.pi)
             u = u * u * (3.0 - 2.0 * u)
-            old_x = side_center_x[mask] * (-1.0 + 2.0 * u)
-            old_y = -self.y_radius * (1.0 - 0.95 * np.sin(math.pi * u) ** 2)
-            new_x = old_x.copy()
-            new_y = old_y.copy()
-            bridge_mask = ~np.isclose(np.cos(join_angle[mask]), 0.0, atol=1e-6)
+            branch_x = side_m * (-1.0 + 2.0 * u)
+            branch_y = -self.y_radius * (1.0 - 0.95 * np.sin(math.pi * u) ** 2)
+            bridge_mask = ~np.isclose(np.cos(join_m), 0.0, atol=1e-6)
             if np.any(bridge_mask):
-                bridge_start_x = side_center_x[mask][
-                    bridge_mask
-                ] + self.y_radius * np.cos(join_angle[mask][bridge_mask])
-                bridge_start_y = self.y_radius * np.sin(join_angle[mask][bridge_mask])
-                bridge_start_angle = np.arctan(
-                    bridge_y_scale * np.tan(join_angle[mask][bridge_mask])
+                bridge_join = join_m[bridge_mask]
+                bridge_start_x = side_m[bridge_mask] + self.y_radius * np.cos(
+                    bridge_join
                 )
+                bridge_start_y = self.y_radius * np.sin(bridge_join)
+                bridge_start_angle = np.arctan(bridge_y_scale * np.tan(bridge_join))
                 bridge_x_radius = bridge_start_x / np.cos(bridge_start_angle)
                 bridge_y_radius = bridge_y_scale * bridge_x_radius
                 bridge_center_y = -bridge_start_y + bridge_y_radius * np.sin(
@@ -292,18 +305,12 @@ class TopSegment(SpiralObject):
                     + bridge_start_angle
                     + u[bridge_mask] * (-math.pi - 2.0 * bridge_start_angle)
                 )
-                new_x[bridge_mask] = bridge_x_radius * np.cos(bridge_angle)
-                new_y[bridge_mask] = bridge_center_y + bridge_y_radius * np.sin(
+                branch_x[bridge_mask] = bridge_x_radius * np.cos(bridge_angle)
+                branch_y[bridge_mask] = bridge_center_y + bridge_y_radius * np.sin(
                     bridge_angle
                 )
-            x[mask] = (
-                old_x * (1.0 - geometry_position[mask])
-                + new_x * geometry_position[mask]
-            )
-            y[mask] = (
-                old_y * (1.0 - geometry_position[mask])
-                + new_y * geometry_position[mask]
-            )
+            x[mask] = branch_x
+            y[mask] = branch_y
 
         cos_orientation = math.cos(self.orientation_angle)
         sin_orientation = math.sin(self.orientation_angle)
@@ -346,7 +353,11 @@ class TopSegment(SpiralObject):
         )
         center = self.anchor_point - np.array([start_x, start_y, 0.0], dtype=np.float32)
         z = self.height * positions
-        polyline: Polyline = center + np.column_stack((x, y, z)).astype(np.float32)
+        top_polyline: Polyline = center + np.column_stack((x, y, z)).astype(np.float32)
+        polyline: Polyline = (
+            middle_polyline * (1.0 - geometry_position[:, None])
+            + top_polyline * geometry_position[:, None]
+        ).astype(np.float32)
         return polyline[0] if scalar_input else polyline
 
 
