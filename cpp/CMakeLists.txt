@@ -16,7 +16,7 @@ pybind11_add_module(
     MODULE
     src/bindings/module.cpp
     src/bindings/geometry_bindings.cpp
-    src/geometry/geometry.cpp
+    src/geometry/separation.cpp
 )
 
 target_compile_features(_native PRIVATE cxx_std_20)

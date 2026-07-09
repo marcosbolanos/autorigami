@@ -35,7 +35,7 @@ sdist.include = [
     "cpp/include/autorigami/geometry.h",
     "cpp/src/bindings/geometry_bindings.cpp",
     "cpp/src/bindings/module.cpp",
-    "cpp/src/geometry/geometry.cpp",
+    "cpp/src/geometry/separation.cpp",
     "src/autorigami/_native.pyi",
     "src/autorigami/py.typed",
 ]

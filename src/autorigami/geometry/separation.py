@@ -1,31 +1,51 @@
+from typing import TypedDict
+
 from scipy.spatial import KDTree
 import numpy as np
 
 from autorigami._native import segment_segment_distance
-from autorigami.types import Polyline
+from autorigami.types import EdgeIndexPair, Polyline
 
 
-def validate_non_self_intersection(
+class SelfIntersectionCheckResult(TypedDict):
+    edges: list[EdgeIndexPair] | None
+    distances: list[float] | None
+
+
+def check_self_intersections(
     polyline: Polyline,
     min_euclid_distance: float,
     n_ignored_adjacent_edges: int = 1
-) -> bool:
+) -> SelfIntersectionCheckResult:
     """
-    Verify that a curve isn't self intersecting
+    Check polyline for self-intersections, return indexes and pairwise distances for culprit edges
+    
     """
     candidate_edges = get_candidate_intersecting_edges(
         polyline,
         min_distance=min_euclid_distance,
         n_ignored_adjacent_edges=n_ignored_adjacent_edges
     )
-    return
+    distances = segment_segment_distance(polyline, candidate_edges)
+    culprit_edges_and_distances = [
+        (edge, distance)
+        for edge, (distance, _, _) in zip(candidate_edges, distances, strict=True)
+        if distance < min_euclid_distance
+    ]
+    if not culprit_edges_and_distances:
+        return {"edges": None, "distances": None}
+
+    return {
+        "edges": [edge for edge, _ in culprit_edges_and_distances],
+        "distances": [distance for _, distance in culprit_edges_and_distances],
+    }
 
 # Get pairs that might self intersect
 def get_candidate_intersecting_edges(
     polyline: Polyline,
     min_distance: float,
     n_ignored_adjacent_edges: int=1
-) -> list[tuple[int, int]]:
+) -> list[EdgeIndexPair]:
     """
     Filter a Polyline for edges that might self-intersect using a KDTree
     This reduces the amount of pairs to test from n² to around nlogn

@@ -10,6 +10,7 @@ void register_geometry_bindings(py::module_& module) {
     module.def(
         "segment_segment_distance",
         &autorigami::segment_segment_distance,
+        py::arg("polyline"),
         py::arg("candidate_pairs")
     );
 }

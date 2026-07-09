@@ -57,12 +57,15 @@ constexpr float kEpsilon = 1e-12F;
 }  // namespace
 
 std::vector<SegmentSegmentDistance> segment_segment_distance(
-    const std::vector<std::pair<Edge, Edge>>& candidate_pairs
+    const Polyline& polyline,
+    const std::vector<std::pair<EdgeIndex, EdgeIndex>>& candidate_pairs
 ) {
     std::vector<SegmentSegmentDistance> distances;
     distances.reserve(candidate_pairs.size());
 
-    for (const auto& [first, second] : candidate_pairs) {
+    for (const auto& [first_index, second_index] : candidate_pairs) {
+        const Edge first = { polyline[first_index], polyline[first_index + 1] };
+        const Edge second = { polyline[second_index], polyline[second_index + 1] };
         distances.push_back(compute_segment_segment_distance(first, second));
     }
 
