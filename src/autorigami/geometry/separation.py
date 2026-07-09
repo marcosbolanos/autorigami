@@ -4,11 +4,11 @@ from scipy.spatial import KDTree
 import numpy as np
 
 from autorigami._native import segment_segment_distance
-from autorigami.types import EdgeIndexPair, Polyline
+from autorigami.types import EdgeIndex, Polyline
 
 
 class SelfIntersectionCheckResult(TypedDict):
-    edges: list[EdgeIndexPair] | None
+    edges: list[tuple[EdgeIndex, EdgeIndex]] | None
     distances: list[float] | None
 
 
@@ -45,7 +45,7 @@ def get_candidate_intersecting_edges(
     polyline: Polyline,
     min_distance: float,
     n_ignored_adjacent_edges: int=1
-) -> list[EdgeIndexPair]:
+) -> list[tuple[EdgeIndex, EdgeIndex]]:
     """
     Filter a Polyline for edges that might self-intersect using a KDTree
     This reduces the amount of pairs to test from n² to around nlogn
