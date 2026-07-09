@@ -9,8 +9,11 @@ def validate_non_self_intersection(
     polyline: Polyline,
     min_euclid_distance: float,
     n_ignored_adjacent_edges: int = 1
-):
-    pairs = get_candidate_intersecting_pairs(
+) -> bool:
+    """
+    Verify that a curve isn't self intersecting
+    """
+    candidate_edges = get_candidate_intersecting_edges(
         polyline,
         min_distance=min_euclid_distance,
         n_ignored_adjacent_edges=n_ignored_adjacent_edges
@@ -18,11 +21,23 @@ def validate_non_self_intersection(
     return
 
 # Get pairs that might self intersect
-def get_candidate_intersecting_pairs(
+def get_candidate_intersecting_edges(
     polyline: Polyline,
     min_distance: float,
     n_ignored_adjacent_edges: int=1
-):
+) -> list[tuple[int, int]]:
+    """
+    Filter a Polyline for edges that might self-intersect using a KDTree
+    This reduces the amount of pairs to test from n² to around nlogn
+
+    Inputs:
+    polyline: Polyline object to search
+    min_distance: Distance under which the curve is considered to self-intersect
+    n_ignored_adjacent_edges: how many edges around each edge should be ingored during search
+
+    Outputs:
+    A list of edge index tuples (i, j), where edge index comes from the polyline's ith and i+1th vertices
+    """
     # Find segment midpoints and half-lengths
     starts = polyline[:-1]
     ends = polyline[1:]
