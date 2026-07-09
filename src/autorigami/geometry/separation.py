@@ -9,7 +9,11 @@ def validate_non_self_intersection(
     min_euclid_distance: float,
     n_ignored_adjacent_edges: int = 1
 ):
-    pairs = get_candidate_intersecting_pairs(polyline)
+    pairs = get_candidate_intersecting_pairs(
+        polyline,
+        min_distance=min_euclid_distance,
+        n_ignored_adjacent_edges=n_ignored_adjacent_edges
+    )
     return
 
 def segment_segment_distance(p0, p1, q0, q1):
@@ -51,7 +55,8 @@ def segment_segment_distance(p0, p1, q0, q1):
 # Get pairs that might self intersect
 def get_candidate_intersecting_pairs(
     polyline: Polyline,
-    min_distance: float
+    min_distance: float,
+    n_ignored_adjacent_edges: int=1
 ):
     # Find segment midpoints and half-lengths
     starts = polyline[:-1]
@@ -65,7 +70,7 @@ def get_candidate_intersecting_pairs(
     tree = KDTree(midpoints)
     candidate_pairs = tree.query_pairs(search_radius)
 
-    # Remove same/neighboring segments
-    candidate_pairs = [(i, j) for i, j in candidate_pairs if abs(i - j) > 1]
+    # Remove duplicate and neighboring edges
+    candidate_pairs = [(i, j) for i, j in candidate_pairs if abs(i - j) > n_ignored_adjacent_edges]
 
     return candidate_pairs
