@@ -32,26 +32,10 @@ sdist.include = [
     "CMakeLists.txt",
     "cpp/CMakeLists.txt",
     "cpp/cmake/Dependencies.cmake",
-    "cpp/include/autorigami/curvature_math.h",
-    "cpp/include/autorigami/generator/energy.h",
-    "cpp/include/autorigami/generator.h",
-    "cpp/include/autorigami/generator/optimize_end_of_spline.h",
-    "cpp/include/autorigami/generator/seed_point.h",
-    "cpp/include/autorigami/splines.h",
-    "cpp/include/autorigami/validation.h",
-    "cpp/include/autorigami/vec3.h",
-    "cpp/src/bindings/generator_bindings.cpp",
+    "cpp/include/autorigami/geometry.h",
+    "cpp/src/bindings/geometry_bindings.cpp",
     "cpp/src/bindings/module.cpp",
-    "cpp/src/bindings/validation_bindings.cpp",
-    "cpp/src/generator/energy.cpp",
-    "cpp/src/generator/generator.cpp",
-    "cpp/src/generator/optimize_end_of_spline.cpp",
-    "cpp/src/generator/seed_point.cpp",
-    "cpp/src/splines/splines.cpp",
-    "cpp/src/validation/validation.cpp",
-    "cpp/tests/generator/seed_point_test.cpp",
-    "cpp/tests/splines/splines_test.cpp",
-    "cpp/tests/validation/validation_test.cpp",
+    "cpp/src/geometry/geometry.cpp",
     "src/autorigami/_native.pyi",
     "src/autorigami/py.typed",
 ]
@@ -60,7 +44,7 @@ cmake.build-type = "Release"
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
 build-verbosity = 1
-test-command = "python -c \"import autorigami._native as native; assert native.add(2, 3) == 5\""
+test-command = "python -c \"import autorigami._native as native; assert native.segment_segment_distance([]) == []\""
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]

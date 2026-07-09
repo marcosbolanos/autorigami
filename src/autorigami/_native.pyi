@@ -2,25 +2,11 @@ from __future__ import annotations
 
 from typing import TypeAlias
 
-from autorigami.parametrization import PiecewiseHermite
-from autorigami.types import FloatArray, IndexArray
+from autorigami.types import Vector3
 
-GeneratorRunData: TypeAlias = dict[str, int | float]
-ManifoldMeshInfo: TypeAlias = dict[str, int]
+Edge: TypeAlias = tuple[Vector3, Vector3]
+SegmentSegmentDistance: TypeAlias = tuple[float, Vector3, Vector3]
 
-def add(left: int, right: int) -> int: ...
-def convert_trimesh_to_manifold_surface_mesh(
-    vertices: FloatArray,
-    faces: IndexArray,
-) -> ManifoldMeshInfo: ...
-def piecewise_hermite_generator(
-    vertices: FloatArray,
-    faces: IndexArray,
-    axis_origin: FloatArray,
-    axis_direction: FloatArray,
-) -> tuple[PiecewiseHermite, GeneratorRunData]: ...
-def validate_piecewise_curve_curvature(
-    piecewise_hermite: PiecewiseHermite,
-    max_curvature: float,
-    curvature_tolerance: float,
-) -> bool: ...
+def segment_segment_distance(
+    candidate_pairs: list[tuple[Edge, Edge]],
+) -> list[SegmentSegmentDistance]: ...
