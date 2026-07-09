@@ -1,5 +1,9 @@
+from typing import Any, cast
+
 import numpy as np
 
+from autorigami.geometry.reparametrize import reparametrize_arc_length
+from autorigami.mesh_io import dna_molecule_mesh_from_base_pair_centers
 from autorigami.spiral_generation.full_double_spiral import (
     SpiralBase,
     MiddleSegment,
@@ -44,3 +48,32 @@ def test_get_points_accepts_scalar_and_array_inputs() -> None:
     assert middle_point.shape == (3,)
     assert np.isclose(base_final_angle, 1.0 + 6.0 * np.pi)
     assert np.isclose(middle_final_angle, 1.0 + 12.0 * np.pi)
+
+
+def test_reparametrize_arc_length_includes_final_point() -> None:
+    polyline = np.array(
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 2.0]], dtype=np.float32
+    )
+
+    reparametrized = reparametrize_arc_length(polyline, 0.5)
+
+    assert reparametrized.shape == (5, 3)
+    np.testing.assert_allclose(reparametrized[-1], polyline[-1])
+
+
+def test_dna_molecule_mesh_uses_two_strands_and_complementary_rungs() -> None:
+    base_pair_centers = np.array(
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.34], [0.0, 0.0, 0.68]],
+        dtype=np.float32,
+    )
+
+    mesh = dna_molecule_mesh_from_base_pair_centers(
+        base_pair_centers=base_pair_centers,
+        dna_molecule_radius=1.05,
+        segment_radius=0.08,
+    )
+
+    assert len(mesh.vertices) == 80
+    assert len(mesh.faces) == 80
+    visual = cast(Any, mesh.visual)
+    assert len(np.unique(visual.vertex_colors, axis=0)) > 2

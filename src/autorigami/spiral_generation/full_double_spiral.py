@@ -10,7 +10,12 @@ import pyvista as pv
 import numpy as np
 import numpy.typing as npt
 
-from autorigami.mesh_io import save_lightweight_glb
+from autorigami.geometry.reparametrize import reparametrize_arc_length
+from autorigami.mesh_io import (
+    dna_molecule_line_segments_from_base_pair_centers,
+    dna_molecule_mesh_from_base_pair_centers,
+    save_lightweight_glb,
+)
 from autorigami.types import Vector3, Polyline
 
 Positions = npt.NDArray[np.float32]
@@ -421,26 +426,74 @@ def generate_full_spiral():
     return polyline
 
 
+def _pyvista_lines_from_segments(
+    starts: Polyline,
+    ends: Polyline,
+    colors: npt.NDArray[np.uint8],
+) -> pv.PolyData:
+    assert starts.ndim == 2 and starts.shape[1] == 3, "starts must have shape (n, 3)"
+    assert ends.shape == starts.shape, "ends must have the same shape as starts"
+    assert colors.shape == (len(starts), 4), "colors must have shape (n, 4)"
+
+    points = np.empty((2 * len(starts), 3), dtype=np.float32)
+    points[0::2] = starts
+    points[1::2] = ends
+    line_indices = np.arange(2 * len(starts), dtype=np.int64).reshape((-1, 2))
+    lines = np.column_stack((np.full(len(starts), 2, dtype=np.int64), line_indices))
+    polydata = pv.PolyData(points)
+    polydata.lines = lines.ravel()
+    polydata.point_data["RGBA"] = np.repeat(colors, 2, axis=0)
+    return polydata
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--save", action="store_true")
     args = parser.parse_args()
 
+    distance_between_base_pairs = 0.34
     dna_molecule_radius = 1.05
+    dna_segment_radius = 0.05
     polyline = generate_full_spiral()
-    tube = pv.lines_from_points(polyline).tube(radius=dna_molecule_radius)
+    base_pair_centers = reparametrize_arc_length(
+        polyline, distance_between_base_pairs
+    )
+    dna_segment_starts, dna_segment_ends, dna_segment_colors = (
+        dna_molecule_line_segments_from_base_pair_centers(
+            base_pair_centers=base_pair_centers,
+            dna_molecule_radius=dna_molecule_radius,
+        )
+    )
+    dna_visualization = _pyvista_lines_from_segments(
+        dna_segment_starts,
+        dna_segment_ends,
+        dna_segment_colors,
+    )
 
     if args.save:
+        dna_mesh = dna_molecule_mesh_from_base_pair_centers(
+            base_pair_centers=base_pair_centers,
+            dna_molecule_radius=dna_molecule_radius,
+            segment_radius=dna_segment_radius,
+        )
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_dir = Path("outputs") / f"full_double_spiral_{timestamp}"
         output_dir.mkdir(parents=True)
         np.save(output_dir / "polyline.npy", polyline)
-        tube.save(output_dir / "full_double_spiral.stl")
+        np.save(output_dir / "base_pair_centers.npy", base_pair_centers)
+        dna_mesh.export(output_dir / "full_double_spiral_dna.stl")
+        dna_glb_path = output_dir / "full_double_spiral_dna.glb"
+        dna_mesh.export(dna_glb_path)
+        lightweight_tube = pv.lines_from_points(polyline).tube(
+            radius=dna_molecule_radius
+        )
+        lightweight_tube.save(output_dir / "lightweight_tube.stl")
         lightweight_glb_path = save_lightweight_glb(
             polyline,
-            output_dir / "full_double_spiral_lightweight.glb",
+            output_dir / "lightweight_tube.glb",
             dna_molecule_radius,
         )
+        print(f"Saved DNA GLB to {dna_glb_path} ({dna_glb_path.stat().st_size} bytes)")
         print(
             f"Saved lightweight GLB to {lightweight_glb_path} ({lightweight_glb_path.stat().st_size} bytes)"
         )
@@ -448,7 +501,13 @@ def main() -> int:
         return 0
 
     plotter = pv.Plotter()
-    plotter.add_mesh(tube)  # type: ignore
+    plotter.add_mesh(  # type: ignore
+        dna_visualization,
+        scalars="RGBA",
+        rgba=True,
+        line_width=2,
+        render_lines_as_tubes=True,
+    )
     try:
         plotter.show(interactive_update=True, auto_close=False)
         while not plotter._closed:
