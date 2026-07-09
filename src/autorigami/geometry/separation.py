@@ -1,15 +1,16 @@
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 import numpy as np
+
+from autorigami.types import Polyline
 
 
 def validate_non_self_intersection(
+    polyline: Polyline,
     min_euclid_distance: float,
     n_ignored_adjacent_edges: int = 1
 ):
-
+    pairs = get_candidate_intersecting_pairs(polyline)
     return
-
-def
 
 def segment_segment_distance(p0, p1, q0, q1):
     u = p1 - p0
@@ -46,3 +47,25 @@ def segment_segment_distance(p0, p1, q0, q1):
     closest_q = q0 + t * v
 
     return np.linalg.norm(closest_p - closest_q), closest_p, closest_q
+
+# Get pairs that might self intersect
+def get_candidate_intersecting_pairs(
+    polyline: Polyline,
+    min_distance: float
+):
+    # Find segment midpoints and half-lengths
+    starts = polyline[:-1]
+    ends = polyline[1:]
+    midpoints = 0.5 * (starts + ends)
+    half_lengths = 0.5 * np.linalg.norm(ends - starts, axis=1)
+
+    # A KDtree efficiently finds all midpoints within a radius of each other
+    # Search radius compensates for half-lengths to guarantee finding all violating edges
+    search_radius = 2 * half_lengths.max() + 2 * min_distance
+    tree = KDTree(midpoints)
+    candidate_pairs = tree.query_pairs(search_radius)
+
+    # Remove same/neighboring segments
+    candidate_pairs = [(i, j) for i, j in candidate_pairs if abs(i - j) > 1]
+
+    return candidate_pairs
