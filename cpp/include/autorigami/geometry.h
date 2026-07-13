@@ -14,9 +14,15 @@ using Vector3 = Eigen::Vector3f;
 using Edge = std::array<Vector3, 2>;
 using Polyline = std::vector<Vector3>;
 using EdgeIndex = std::size_t;
-using SegmentSegmentDistance = std::tuple<float, Vector3, Vector3>;
+struct SegmentSegmentDistanceResult {
+    float distance;
+    Vector3 closest_p;
+    Vector3 closest_q;
+    float first_parameter;
+    float second_parameter;
+};
 
-[[nodiscard]] std::vector<SegmentSegmentDistance> segment_segment_distance(
+[[nodiscard]] std::vector<SegmentSegmentDistanceResult> segment_segment_distance(
     const Polyline& polyline,
     const std::vector<std::pair<EdgeIndex, EdgeIndex>>& candidate_pairs
 );

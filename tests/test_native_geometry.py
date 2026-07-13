@@ -29,3 +29,29 @@ def test_segment_segment_distance_accepts_candidate_edge_pairs() -> None:
     assert np.isclose(parallel_distance, 2.0)
     assert np.allclose(parallel_p, [0.0, 0.0, 0.0])
     assert np.allclose(parallel_q, [0.0, 2.0, 0.0])
+
+
+def test_segment_segment_distance_can_include_optimization_data() -> None:
+    polyline = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.5, -1.0, 0.0],
+            [0.5, 1.0, 0.0],
+        ],
+        dtype=np.float32,
+    )
+
+    distances = segment_segment_distance(
+        polyline,
+        [(0, 2)],
+        include_optimization_data=True,
+    )
+
+    distance, closest_p, closest_q, first_parameter, second_parameter = distances[0]
+
+    assert np.isclose(distance, 0.0)
+    assert np.allclose(closest_p, [0.5, 0.0, 0.0])
+    assert np.allclose(closest_q, [0.5, 0.0, 0.0])
+    assert np.isclose(first_parameter, 0.5)
+    assert np.isclose(second_parameter, 0.5)

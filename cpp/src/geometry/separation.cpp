@@ -7,7 +7,7 @@ namespace {
 
 constexpr float kEpsilon = 1e-12F;
 
-[[nodiscard]] SegmentSegmentDistance compute_segment_segment_distance(
+[[nodiscard]] SegmentSegmentDistanceResult compute_segment_segment_distance(
     const Edge& first,
     const Edge& second
 ) {
@@ -51,16 +51,16 @@ constexpr float kEpsilon = 1e-12F;
     const Vector3 closest_p = p0 + s * u;
     const Vector3 closest_q = q0 + t * v;
 
-    return { (closest_p - closest_q).norm(), closest_p, closest_q };
+    return { (closest_p - closest_q).norm(), closest_p, closest_q, s, t };
 }
 
 }  // namespace
 
-std::vector<SegmentSegmentDistance> segment_segment_distance(
+std::vector<SegmentSegmentDistanceResult> segment_segment_distance(
     const Polyline& polyline,
     const std::vector<std::pair<EdgeIndex, EdgeIndex>>& candidate_pairs
 ) {
-    std::vector<SegmentSegmentDistance> distances;
+    std::vector<SegmentSegmentDistanceResult> distances;
     distances.reserve(candidate_pairs.size());
 
     for (const auto& [first_index, second_index] : candidate_pairs) {

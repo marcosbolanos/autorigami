@@ -26,14 +26,13 @@ def reparametrize_arc_length(polyline: Polyline, interval: float) -> Polyline:
     # The last edge is concatenated to complete the curve, it can be shorter
     targets = np.r_[np.arange(0, total_arc_length, interval), total_arc_length]
 
-    output = []
     # Define coordinates for every target arc length
-    for t in targets:
-        # Get index of point right before the target length
-        i = np.searchsorted(cumulative_lengths, t, side="right") - 1
-        i = min(i, len(edge_lengths) - 1)
-        # Get the length of the new edge and find its coordinates
-        new_edge = (t - cumulative_lengths[i]) / edge_lengths[i]
-        output.append((1 - new_edge) * polyline[i] + new_edge * polyline[i + 1])
+    indices = np.searchsorted(cumulative_lengths, targets, side="right") - 1
+    indices = np.minimum(indices, len(edge_lengths) - 1)
+    new_edges = (targets - cumulative_lengths[indices]) / edge_lengths[indices]
+    output = (
+        (1.0 - new_edges[:, None]) * polyline[indices]
+        + new_edges[:, None] * polyline[indices + 1]
+    )
 
     return np.array(output, dtype=np.float32)
