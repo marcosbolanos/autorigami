@@ -50,7 +50,7 @@ archs = ["AMD64"]
 
 [dependency-groups]
 dev = [
-    "cibuildwheel>=2.23.3",
+    "cibuildwheel>=4.1.0",
     "cmake>=3.30",
     "ninja>=1.11",
     "pybind11>=2.13",
