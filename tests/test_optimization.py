@@ -1,40 +1,104 @@
 import numpy as np
+import pytest
 
 from autorigami.geometry.curvature import get_polyline_angles
+from autorigami.geometry.separation import check_self_intersections
+import autorigami.optimization.workloads as workloads
 from autorigami.optimization.energies import (
     curvature_violation_energy_gradient,
     curvature_violation_energy,
-    sparse_separation_energy,
 )
 from autorigami.optimization.workloads import (
     fix_curvature_violations,
-    optimize_separation_violations,
+    fix_separation_violations,
 )
 
 
-def test_optimize_separation_violations_reduces_sparse_separation_energy() -> None:
+def test_fix_separation_violations_corrects_and_reparametrizes_a_hairpin() -> None:
     polyline = np.array(
         [
             [0.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [0.5, -1.0, 0.0],
-            [0.5, 1.0, 0.0],
+            [2.0, 0.0, 0.0],
+            [2.0, 2.0, 0.0],
+            [0.1, 2.0, 0.0],
+            [0.1, 0.1, 0.0],
         ],
         dtype=np.float32,
     )
 
-    initial_energy = sparse_separation_energy(polyline, min_distance=0.25)
-    optimized = optimize_separation_violations(
+    initial_validation = check_self_intersections(
+        polyline,
+        min_euclid_distance=0.25,
+        n_ignored_adjacent_edges=2,
+    )
+    optimized = fix_separation_violations(
         polyline,
         min_distance=0.25,
-        learning_rate=0.1,
-        steps=10,
-        n_ignored_adjacent_edges=1,
+        edge_length=0.25,
+        coordinates=["x", "y"],
+        n_ignored_adjacent_edges=2,
     )
-    final_energy = sparse_separation_energy(optimized, min_distance=0.25)
+    final_validation = check_self_intersections(
+        optimized,
+        min_euclid_distance=0.25,
+        n_ignored_adjacent_edges=2,
+    )
 
-    assert final_energy < initial_energy
-    assert np.allclose(optimized[:, :2], polyline[:, :2])
+    assert initial_validation["edges"] is not None
+    assert final_validation["edges"] is None
+    assert len(optimized) > len(polyline)
+    edge_lengths = np.linalg.norm(np.diff(optimized, axis=0), axis=1)
+    assert np.all(edge_lengths <= 0.25 + 1e-5)
+    assert np.isclose(np.median(edge_lengths), 0.25, atol=1e-5)
+    assert edge_lengths[-1] <= 0.25 + 1e-5
+
+
+def test_fix_separation_violations_retries_failed_validation(monkeypatch) -> None:
+    polyline = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+        dtype=np.float32,
+    )
+    validation_count = 0
+
+    def fail_once(*args, **kwargs):
+        nonlocal validation_count
+        validation_count += 1
+        if validation_count == 1:
+            return {"edges": [(0, 1)], "distances": [0.0]}
+        return {"edges": None, "distances": None}
+
+    monkeypatch.setattr(workloads, "check_self_intersections", fail_once)
+
+    fix_separation_violations(
+        polyline,
+        min_distance=0.25,
+        edge_length=0.25,
+        validation_attempts=2,
+    )
+
+    assert validation_count == 2
+
+
+def test_fix_separation_violations_warns_when_validation_never_succeeds(
+    monkeypatch,
+) -> None:
+    polyline = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+        dtype=np.float32,
+    )
+
+    def always_fail(*args, **kwargs):
+        return {"edges": [(0, 1)], "distances": [0.0]}
+
+    monkeypatch.setattr(workloads, "check_self_intersections", always_fail)
+
+    with pytest.warns(RuntimeWarning, match="1 separation violations remain"):
+        fix_separation_violations(
+            polyline,
+            min_distance=0.25,
+            edge_length=0.25,
+            validation_attempts=2,
+        )
 
 
 def test_fix_curvature_violations_reduces_curvature_energy() -> None:
@@ -107,10 +171,27 @@ def test_curvature_optimization_moves_all_participating_vertices() -> None:
 
     optimized = fix_curvature_violations(
         polyline,
-        target_angle=0.25,
+        target_angle=0.5,
+        edge_length=1.0,
         learning_rate=0.1,
-        steps=1,
+        steps=10,
         max_vertex_step=1.0,
     )
 
     assert np.all(np.linalg.norm(optimized - polyline, axis=1) > 0.0)
+
+
+def test_fix_curvature_violations_warns_when_validation_fails() -> None:
+    polyline = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0]],
+        dtype=np.float32,
+    )
+
+    with pytest.warns(RuntimeWarning, match="1 curvature violations remain"):
+        fix_curvature_violations(
+            polyline,
+            target_angle=0.25,
+            edge_length=1.0,
+            steps=0,
+            validation_attempts=2,
+        )

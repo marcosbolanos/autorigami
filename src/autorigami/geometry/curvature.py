@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from autorigami.types import Vector3, Polyline
+from autorigami.types import Polyline
+
 
 def get_polyline_angles(polyline: Polyline) -> NDArray[np.float32]:
     """
@@ -18,4 +19,3 @@ def get_polyline_angles(polyline: Polyline) -> NDArray[np.float32]:
 
     angles = np.arccos(cosines)
     return angles
-    

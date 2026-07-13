@@ -12,17 +12,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "jax>=0.10.2",
     "jaxtyping>=0.3.11",
     "numpy>=2.0.0",
-    "optax>=0.2.8",
-    "plotly>=6.8.0",
-    "polyscope>=2.6.1",
     "pyvista>=0.48.4",
-    "rtree>=1.2.0",
     "scipy>=1.14.0",
-    "streamlit>=1.58.0",
-    "streamlit-plotly-events>=0.0.6",
     "trimesh>=4.11.5",
 ]
 

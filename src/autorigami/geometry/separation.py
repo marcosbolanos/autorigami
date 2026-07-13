@@ -13,18 +13,16 @@ class SelfIntersectionCheckResult(TypedDict):
 
 
 def check_self_intersections(
-    polyline: Polyline,
-    min_euclid_distance: float,
-    n_ignored_adjacent_edges: int = 1
+    polyline: Polyline, min_euclid_distance: float, n_ignored_adjacent_edges: int = 1
 ) -> SelfIntersectionCheckResult:
     """
     Check polyline for self-intersections, return indexes and pairwise distances for culprit edges
-    
+
     """
     candidate_edges = get_candidate_intersecting_edges(
         polyline,
         min_distance=min_euclid_distance,
-        n_ignored_adjacent_edges=n_ignored_adjacent_edges
+        n_ignored_adjacent_edges=n_ignored_adjacent_edges,
     )
     distances = segment_segment_distance(polyline, candidate_edges)
     culprit_edges_and_distances = [
@@ -40,15 +38,14 @@ def check_self_intersections(
         "distances": [distance for _, distance in culprit_edges_and_distances],
     }
 
+
 # Get pairs that might self intersect
 def get_candidate_intersecting_edges(
-    polyline: Polyline,
-    min_distance: float,
-    n_ignored_adjacent_edges: int=1
+    polyline: Polyline, min_distance: float, n_ignored_adjacent_edges: int = 1
 ) -> list[tuple[EdgeIndex, EdgeIndex]]:
     """
     Filter a Polyline for edges that might self-intersect using a KDTree
-    This reduces the amount of pairs to test from n² to around nlogn
+    This reduces the amount of pairs to test from O(n²) to around O(nlogn)
 
     Inputs:
     polyline: Polyline object to search
@@ -66,11 +63,13 @@ def get_candidate_intersecting_edges(
 
     # A KDtree efficiently finds all midpoints within a radius of each other
     # Search radius compensates for half-lengths to guarantee finding all violating edges
-    search_radius = 2 * half_lengths.max() + 2 * min_distance
+    search_radius = 2 * half_lengths.max() + min_distance
     tree = KDTree(midpoints)
     candidate_pairs = tree.query_pairs(search_radius)
 
     # Remove duplicate and neighboring edges
-    candidate_pairs = [(i, j) for i, j in candidate_pairs if abs(i - j) > n_ignored_adjacent_edges]
+    candidate_pairs = [
+        (i, j) for i, j in candidate_pairs if abs(i - j) > n_ignored_adjacent_edges
+    ]
 
     return candidate_pairs

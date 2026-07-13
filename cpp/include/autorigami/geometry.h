@@ -21,10 +21,24 @@ struct SegmentSegmentDistanceResult {
     float first_parameter;
     float second_parameter;
 };
+struct SeparationCorrectionResult {
+    Polyline polyline;
+    std::size_t correction_count;
+};
 
 [[nodiscard]] std::vector<SegmentSegmentDistanceResult> segment_segment_distance(
     const Polyline& polyline,
     const std::vector<std::pair<EdgeIndex, EdgeIndex>>& candidate_pairs
+);
+
+[[nodiscard]] SeparationCorrectionResult apply_separation_correction(
+    Polyline polyline,
+    std::size_t passes,
+    const std::vector<std::pair<EdgeIndex, EdgeIndex>>& candidate_pairs,
+    float min_distance,
+    float fixed_step,
+    const std::array<bool, 3>& coordinate_mask,
+    bool reverse_order
 );
 
 }  // namespace autorigami
