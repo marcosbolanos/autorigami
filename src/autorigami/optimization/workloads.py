@@ -6,9 +6,9 @@ import numpy as np
 import numpy.typing as npt
 
 from autorigami._native import segment_segment_distance
-from autorigami.geometry.curvature import get_polyline_angles
 from autorigami.geometry.reparametrize import reparametrize_arc_length
 from autorigami.geometry.separation import get_candidate_intersecting_edges
+from autorigami.optimization.energies import curvature_violation_energy_gradient
 from autorigami.types import EdgeIndex, Polyline, Vector3
 
 CoordinateMask: TypeAlias = tuple[bool, bool, bool]
@@ -50,8 +50,8 @@ def fix_curvature_violations(
     polyline: Polyline,
     target_angle: float,
     coordinate_mask: CoordinateMask = (True, True, True),
-    learning_rate: float = 0.2,
-    steps: int = 100,
+    learning_rate: float = 5e-3,
+    steps: int = 500,
     max_vertex_step: float = 0.05,
     edge_length: float | None = None,
     reparametrize_every: int = 1,
@@ -86,23 +86,8 @@ def _curvature_update(
     target_angle: float,
     max_vertex_step: float,
 ) -> Polyline:
-    angles = get_polyline_angles(polyline)
-    violations = np.maximum(np.float32(0.0), angles - np.float32(target_angle))
-    violating_vertices = violations > 0.0
-
-    update = np.zeros_like(polyline, dtype=np.float32)
-    if not np.any(violating_vertices):
-        return update
-
-    neighbor_midpoints = np.float32(0.5) * (polyline[:-2] + polyline[2:])
-    raw_updates = neighbor_midpoints - polyline[1:-1]
-    weighted_updates = (
-        raw_updates * (violations / np.float32(target_angle))[:, None]
-    ).astype(np.float32)
-    clipped_updates = _clip_vertex_steps(weighted_updates, max_vertex_step)
-    inner_update = update[1:-1]
-    inner_update[violating_vertices] = clipped_updates[violating_vertices]
-    return update
+    energy_gradient = curvature_violation_energy_gradient(polyline, target_angle)
+    return _clip_vertex_steps(-energy_gradient, max_vertex_step)
 
 
 def _clip_vertex_steps(
