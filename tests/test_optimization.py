@@ -9,9 +9,68 @@ from autorigami.optimization.energies import (
     curvature_violation_energy,
 )
 from autorigami.optimization.workloads import (
+    compress_along_axis,
     fix_curvature_violations,
     fix_separation_violations,
 )
+
+
+def test_compress_along_axis_preserves_constraints() -> None:
+    polyline = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 1.0],
+            [2.0, 0.5, 2.0],
+            [3.0, 1.5, 3.0],
+            [4.0, 3.0, 4.0],
+        ],
+        dtype=np.float32,
+    )
+    initial_length = np.sum(np.linalg.norm(np.diff(polyline, axis=0), axis=1))
+
+    compressed = compress_along_axis(
+        polyline,
+        axis="z",
+        target_angle=2.0,
+        edge_length=0.5,
+        min_distance=0.2,
+        compression_fraction=0.05,
+        steps=2,
+        separation_steps=20,
+    )
+
+    final_edges = np.linalg.norm(np.diff(compressed, axis=0), axis=1)
+    separation = check_self_intersections(
+        compressed,
+        min_euclid_distance=0.2,
+        n_ignored_adjacent_edges=1,
+    )
+    assert np.ptp(compressed[:, 2]) < np.ptp(polyline[:, 2])
+    assert np.isclose(np.sum(final_edges), initial_length, atol=1e-3)
+    assert np.isclose(np.median(final_edges[:-1]), 0.5, atol=1e-3)
+    assert np.max(get_polyline_angles(compressed)) <= 2.0 + 1e-6
+    assert separation["edges"] is None
+
+
+def test_minimum_separation_defaults_to_2_6_and_can_be_overridden() -> None:
+    polyline = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [1.0, 2.5, 0.0],
+            [0.0, 2.5, 0.0],
+        ],
+        dtype=np.float32,
+    )
+
+    default_validation = check_self_intersections(polyline)
+    overridden_validation = check_self_intersections(
+        polyline,
+        min_euclid_distance=2.4,
+    )
+
+    assert default_validation["edges"] == [(0, 2)]
+    assert overridden_validation["edges"] is None
 
 
 def test_fix_separation_violations_corrects_and_reparametrizes_a_hairpin() -> None:

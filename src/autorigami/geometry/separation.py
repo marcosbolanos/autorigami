@@ -1,10 +1,12 @@
-from typing import TypedDict
+from typing import Final, TypedDict
 
 from scipy.spatial import KDTree
 import numpy as np
 
 from autorigami._native import segment_segment_distance
 from autorigami.types import EdgeIndex, Polyline
+
+DEFAULT_MIN_DISTANCE: Final = 2.6
 
 
 class SelfIntersectionCheckResult(TypedDict):
@@ -13,7 +15,9 @@ class SelfIntersectionCheckResult(TypedDict):
 
 
 def check_self_intersections(
-    polyline: Polyline, min_euclid_distance: float, n_ignored_adjacent_edges: int = 1
+    polyline: Polyline,
+    min_euclid_distance: float = DEFAULT_MIN_DISTANCE,
+    n_ignored_adjacent_edges: int = 1,
 ) -> SelfIntersectionCheckResult:
     """
     Check polyline for self-intersections, return indexes and pairwise distances for culprit edges
