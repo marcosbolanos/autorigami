@@ -8,7 +8,9 @@ import numpy.typing as npt
 from scipy.optimize import brentq
 
 from autorigami._native import apply_separation_correction
-from autorigami.geometry.curvature import get_polyline_angles
+from autorigami.geometry.curvature import (
+    get_polyline_angles,
+)
 from autorigami.geometry.reparametrize import reparametrize_arc_length
 from autorigami.geometry.separation import (
     DEFAULT_MIN_DISTANCE,
@@ -16,6 +18,9 @@ from autorigami.geometry.separation import (
     get_candidate_intersecting_edges,
 )
 from autorigami.optimization.energies import curvature_violation_energy_gradient
+from autorigami.optimization.separation import (
+    optimize_separation as optimize_separation,
+)
 from autorigami.types import Polyline
 
 CoordinateMask: TypeAlias = tuple[bool, bool, bool]

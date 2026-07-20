@@ -1,13 +1,20 @@
 #include "autorigami/geometry.h"
 
 #include <algorithm>
+#include <cmath>
+#include <functional>
+#include <limits>
+#include <stdexcept>
 
 #include <Eigen/Geometry>
+
+#include "autorigami/utils.h"
 
 namespace autorigami {
 namespace {
 
 constexpr float kEpsilon = 1e-12F;
+constexpr float kParallelRelativeEpsilon = 1e-6F;
 
 [[nodiscard]] SegmentSegmentDistanceResult compute_segment_segment_distance(
     const Edge& first,
@@ -29,31 +36,55 @@ constexpr float kEpsilon = 1e-12F;
     const float e = v.dot(w);
     const float denom = a * c - b * b;
 
-    float s = 0.0F;
-    float t = 0.0F;
-
-    if (denom > kEpsilon) {
-        s = (b * e - c * d) / denom;
-        t = (a * e - b * d) / denom;
-    } else {
-        s = 0.0F;
-        t = c > kEpsilon ? e / c : 0.0F;
+    if (a <= kEpsilon || c <= kEpsilon) {
+        throw std::invalid_argument("segment endpoints must be distinct");
+    }
+    std::vector<std::pair<float, float>> candidates = {
+        { 0.0F, std::clamp(e / c, 0.0F, 1.0F) },
+        { 1.0F, std::clamp((e + b) / c, 0.0F, 1.0F) },
+        { std::clamp(-d / a, 0.0F, 1.0F), 0.0F },
+        { std::clamp((b - d) / a, 0.0F, 1.0F), 1.0F },
+    };
+    if (denom > kParallelRelativeEpsilon * a * c) {
+        const float interior_s = (b * e - c * d) / denom;
+        const float interior_t = (a * e - b * d) / denom;
+        if (interior_s >= 0.0F && interior_s <= 1.0F
+            && interior_t >= 0.0F && interior_t <= 1.0F) {
+            candidates.emplace_back(interior_s, interior_t);
+        }
+    } else if (std::abs(b) > kEpsilon) {
+        const float overlap_start = std::max(
+            0.0F, std::min(-e / b, (c - e) / b)
+        );
+        const float overlap_end = std::min(
+            1.0F, std::max(-e / b, (c - e) / b)
+        );
+        if (overlap_start <= overlap_end) {
+            const float parallel_s = 0.5F * (overlap_start + overlap_end);
+            const float parallel_t = std::clamp(
+                (e + b * parallel_s) / c, 0.0F, 1.0F
+            );
+            const Vector3 closest_p = p0 + parallel_s * u;
+            const Vector3 closest_q = q0 + parallel_t * v;
+            return {
+                (closest_p - closest_q).norm(), closest_p, closest_q,
+                parallel_s, parallel_t
+            };
+        }
     }
 
-    s = std::clamp(s, 0.0F, 1.0F);
-    t = std::clamp(t, 0.0F, 1.0F);
-
-    if (c > kEpsilon) {
-        t = std::clamp(v.dot(p0 + s * u - q0) / c, 0.0F, 1.0F);
+    SegmentSegmentDistanceResult best = {
+        std::numeric_limits<float>::infinity(), p0, q0, 0.0F, 0.0F
+    };
+    for (const auto& [s, t] : candidates) {
+        const Vector3 closest_p = p0 + s * u;
+        const Vector3 closest_q = q0 + t * v;
+        const float distance = (closest_p - closest_q).norm();
+        if (distance < best.distance) {
+            best = { distance, closest_p, closest_q, s, t };
+        }
     }
-    if (a > kEpsilon) {
-        s = std::clamp(u.dot(q0 + t * v - p0) / a, 0.0F, 1.0F);
-    }
-
-    const Vector3 closest_p = p0 + s * u;
-    const Vector3 closest_q = q0 + t * v;
-
-    return { (closest_p - closest_q).norm(), closest_p, closest_q, s, t };
+    return best;
 }
 
 [[nodiscard]] Vector3 distance_increase_direction(
@@ -87,6 +118,19 @@ constexpr float kEpsilon = 1e-12F;
     return Vector3::UnitX();
 }
 
+[[nodiscard]] double cluster_distance_lower_bound(
+    const utils::SpatialTreeNode& first,
+    const utils::SpatialTreeNode& second
+) {
+    const Eigen::Vector3d box_gap = (
+        first.minimum_position - second.maximum_position
+    ).cwiseMax(second.minimum_position - first.maximum_position).cwiseMax(0.0);
+    return std::max(
+        0.0,
+        box_gap.norm() - first.maximum_coordinate - second.maximum_coordinate
+    );
+}
+
 }  // namespace
 
 std::vector<SegmentSegmentDistanceResult> segment_segment_distance(
@@ -103,6 +147,87 @@ std::vector<SegmentSegmentDistanceResult> segment_segment_distance(
     }
 
     return distances;
+}
+
+std::vector<std::pair<EdgeIndex, EdgeIndex>> find_close_edge_pairs(
+    const Polyline& polyline,
+    const float max_distance,
+    const std::size_t ignored_adjacent_edges,
+    const std::size_t leaf_size
+) {
+    if (polyline.size() < 2 || max_distance <= 0.0F || leaf_size == 0) {
+        throw std::invalid_argument("close-edge query inputs must be positive");
+    }
+    std::vector<utils::SpatialSample> samples;
+    samples.reserve(polyline.size() - 1);
+    for (std::size_t edge = 0; edge + 1 < polyline.size(); ++edge) {
+        const Eigen::Vector3d start = polyline[edge].cast<double>();
+        const Eigen::Vector3d end = polyline[edge + 1].cast<double>();
+        const Eigen::Vector3d edge_vector = end - start;
+        samples.push_back({
+            .position = 0.5 * (start + end),
+            .tangent = edge_vector.normalized(),
+            .mass = 1.0,
+            .coordinate = 0.5 * edge_vector.norm(),
+        });
+    }
+    const utils::SpatialHierarchy hierarchy(
+        std::move(samples), leaf_size, utils::HierarchySplit::SpatialTangent
+    );
+    std::vector<std::pair<EdgeIndex, EdgeIndex>> pairs;
+    using Node = utils::SpatialTreeNode;
+    std::function<void(const Node&, const Node&, bool)> visit;
+    visit = [&](const Node& first, const Node& second, const bool same_node) {
+        if (!same_node
+            && cluster_distance_lower_bound(first, second) > max_distance) {
+            return;
+        }
+        if (first.is_leaf() && second.is_leaf()) {
+            for (const std::size_t first_edge : hierarchy.indices(first)) {
+                for (const std::size_t second_edge : hierarchy.indices(second)) {
+                    const std::size_t lower_edge = std::min(
+                        first_edge, second_edge
+                    );
+                    const std::size_t upper_edge = std::max(
+                        first_edge, second_edge
+                    );
+                    if (lower_edge == upper_edge
+                        || upper_edge - lower_edge <= ignored_adjacent_edges) {
+                        continue;
+                    }
+                    const Edge first_segment = {
+                        polyline[lower_edge], polyline[lower_edge + 1]
+                    };
+                    const Edge second_segment = {
+                        polyline[upper_edge], polyline[upper_edge + 1]
+                    };
+                    if (compute_segment_segment_distance(
+                            first_segment, second_segment
+                        ).distance <= max_distance) {
+                        pairs.emplace_back(lower_edge, upper_edge);
+                    }
+                }
+            }
+            return;
+        }
+        if (same_node) {
+            visit(*first.left, *first.left, true);
+            visit(*first.left, *first.right, false);
+            visit(*first.right, *first.right, true);
+        } else if (!first.is_leaf()
+                   && (second.is_leaf()
+                       || first.spatial_radius() >= second.spatial_radius())) {
+            visit(*first.left, second, false);
+            visit(*first.right, second, false);
+        } else {
+            visit(first, *second.left, false);
+            visit(first, *second.right, false);
+        }
+    };
+    visit(hierarchy.root(), hierarchy.root(), true);
+    std::sort(pairs.begin(), pairs.end());
+    pairs.erase(std::unique(pairs.begin(), pairs.end()), pairs.end());
+    return pairs;
 }
 
 SeparationCorrectionResult apply_separation_correction(

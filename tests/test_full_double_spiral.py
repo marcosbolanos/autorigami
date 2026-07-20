@@ -2,7 +2,10 @@ from typing import Any, cast
 
 import numpy as np
 
-from autorigami.geometry.reparametrize import reparametrize_arc_length
+from autorigami.geometry.reparametrize import (
+    reparametrize_arc_length,
+    reparametrize_vertex_count,
+)
 from autorigami.mesh_io import dna_molecule_mesh_from_base_pair_centers
 from autorigami.spiral_generation.full_double_spiral import (
     SpiralBase,
@@ -59,6 +62,16 @@ def test_reparametrize_arc_length_includes_final_point() -> None:
 
     assert reparametrized.shape == (5, 3)
     np.testing.assert_allclose(reparametrized[-1], polyline[-1])
+
+
+def test_reparametrize_vertex_count_is_uniform_and_preserves_endpoints() -> None:
+    polyline = np.array(
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 2.0]],
+        dtype=np.float32,
+    )
+    reparametrized = reparametrize_vertex_count(polyline, 5)
+    np.testing.assert_allclose(reparametrized[:, 2], np.linspace(0.0, 2.0, 5))
+    np.testing.assert_allclose(reparametrized[[0, -1]], polyline[[0, -1]])
 
 
 def test_dna_molecule_mesh_uses_two_strands_and_complementary_rungs() -> None:

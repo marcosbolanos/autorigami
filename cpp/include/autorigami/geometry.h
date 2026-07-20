@@ -31,6 +31,13 @@ struct SeparationCorrectionResult {
     const std::vector<std::pair<EdgeIndex, EdgeIndex>>& candidate_pairs
 );
 
+[[nodiscard]] std::vector<std::pair<EdgeIndex, EdgeIndex>> find_close_edge_pairs(
+    const Polyline& polyline,
+    float max_distance,
+    std::size_t ignored_adjacent_edges,
+    std::size_t leaf_size = 16
+);
+
 [[nodiscard]] SeparationCorrectionResult apply_separation_correction(
     Polyline polyline,
     std::size_t passes,

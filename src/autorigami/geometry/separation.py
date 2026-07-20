@@ -1,9 +1,8 @@
 from typing import Final, TypedDict
 
-from scipy.spatial import KDTree
 import numpy as np
 
-from autorigami._native import segment_segment_distance
+from autorigami._native import find_close_edge_pairs, segment_segment_distance
 from autorigami.types import EdgeIndex, Polyline
 
 DEFAULT_MIN_DISTANCE: Final = 2.6
@@ -59,21 +58,8 @@ def get_candidate_intersecting_edges(
     Outputs:
     A list of edge index tuples (i, j), where edge index comes from the polyline's ith and i+1th vertices
     """
-    # Find segment midpoints and half-lengths
-    starts = polyline[:-1]
-    ends = polyline[1:]
-    midpoints = 0.5 * (starts + ends)
-    half_lengths = 0.5 * np.linalg.norm(ends - starts, axis=1)
-
-    # A KDtree efficiently finds all midpoints within a radius of each other
-    # Search radius compensates for half-lengths to guarantee finding all violating edges
-    search_radius = 2 * half_lengths.max() + min_distance
-    tree = KDTree(midpoints)
-    candidate_pairs = tree.query_pairs(search_radius)
-
-    # Remove duplicate and neighboring edges
-    candidate_pairs = [
-        (i, j) for i, j in candidate_pairs if abs(i - j) > n_ignored_adjacent_edges
-    ]
-
-    return candidate_pairs
+    return find_close_edge_pairs(
+        np.asarray(polyline, dtype=np.float32),
+        min_distance,
+        n_ignored_adjacent_edges,
+    )

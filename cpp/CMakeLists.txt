@@ -16,7 +16,10 @@ pybind11_add_module(
     MODULE
     src/bindings/module.cpp
     src/bindings/geometry_bindings.cpp
+    src/bindings/optimization_bindings.cpp
     src/geometry/separation.cpp
+    src/optimization/tangent_point.cpp
+    src/utils/spatial_hierarchy.cpp
 )
 
 target_compile_features(_native PRIVATE cxx_std_20)

@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.typing import NDArray
+from typing import Final
 
 from autorigami.types import Polyline
+
+DEFAULT_EDGE_LENGTH_NM: Final = 0.34
+DEFAULT_MAX_ANGLE_RADIANS: Final = float(np.deg2rad(3.25))
 
 
 def get_polyline_angles(polyline: Polyline) -> NDArray[np.float32]:
