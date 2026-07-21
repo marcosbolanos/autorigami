@@ -20,8 +20,10 @@ def test_fractional_preconditioner_smooths_high_frequencies_more() -> None:
     high_result = preconditioner.apply_inverse(high_frequency)
 
     assert np.linalg.norm(low_result) > np.linalg.norm(high_result)
-    assert np.argmax(np.abs(dct(low_result[:, 1], norm="ortho"))) == 1
-    assert np.argmax(np.abs(dct(high_result[:, 1], norm="ortho"))) == 7
+    low_coefficients = np.asarray(dct(low_result[:, 1], norm="ortho"))
+    high_coefficients = np.asarray(dct(high_result[:, 1], norm="ortho"))
+    assert np.argmax(np.abs(low_coefficients)) == 1
+    assert np.argmax(np.abs(high_coefficients)) == 7
 
 
 def test_fractional_preconditioner_preserves_coordinate_independence() -> None:

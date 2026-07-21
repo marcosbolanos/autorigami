@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from typing import cast
 
 import pyvista as pv
 import numpy as np
@@ -228,9 +229,7 @@ class TopSegment(SpiralObject):
             downward_positions = (positions[downward_mask] - loop_end) / (
                 1.0 - loop_end
             )
-            polyline[downward_mask] = self._downward_spiral_points(
-                downward_positions
-            )
+            polyline[downward_mask] = self._downward_spiral_points(downward_positions)
 
         return polyline[0] if scalar_input else polyline
 
@@ -279,14 +278,8 @@ class TopSegment(SpiralObject):
     def _to_world_points(self, local_points: Polyline) -> Polyline:
         cos_orientation = math.cos(self.orientation_angle)
         sin_orientation = math.sin(self.orientation_angle)
-        x = (
-            local_points[:, 0] * cos_orientation
-            - local_points[:, 1] * sin_orientation
-        )
-        y = (
-            local_points[:, 0] * sin_orientation
-            + local_points[:, 1] * cos_orientation
-        )
+        x = local_points[:, 0] * cos_orientation - local_points[:, 1] * sin_orientation
+        y = local_points[:, 0] * sin_orientation + local_points[:, 1] * cos_orientation
         world_points: Polyline = (
             self.anchor_point + np.column_stack((x, y, local_points[:, 2]))
         ).astype(np.float32)
@@ -304,11 +297,9 @@ class TopSegment(SpiralObject):
 
 
 def _middle_segment_end_arc_angle(segment: MiddleSegment) -> float:
-    q = (
-        segment.phase_offset
-        + 2.0 * math.pi * segment.turns
-        + 0.25 * math.pi
-    ) % (2.0 * math.pi)
+    q = (segment.phase_offset + 2.0 * math.pi * segment.turns + 0.25 * math.pi) % (
+        2.0 * math.pi
+    )
     if q < 0.5 * math.pi:
         return -0.5 * math.pi + 2.0 * q
     assert math.pi <= q < 1.5 * math.pi, (
@@ -364,14 +355,8 @@ def _middle_top_local_to_world(
     local_points = (local_points - end_local_point).astype(np.float32)
     cos_orientation = math.cos(middle_segment.orientation_angle)
     sin_orientation = math.sin(middle_segment.orientation_angle)
-    x = (
-        local_points[:, 0] * cos_orientation
-        - local_points[:, 1] * sin_orientation
-    )
-    y = (
-        local_points[:, 0] * sin_orientation
-        + local_points[:, 1] * cos_orientation
-    )
+    x = local_points[:, 0] * cos_orientation - local_points[:, 1] * sin_orientation
+    y = local_points[:, 0] * sin_orientation + local_points[:, 1] * cos_orientation
     world_points: Polyline = (
         middle_polyline[-1] + np.column_stack((x, y, local_points[:, 2]))
     ).astype(np.float32)
@@ -380,8 +365,7 @@ def _middle_top_local_to_world(
 
 def _middle_segment_end_local_point(segment: MiddleSegment) -> Vector3:
     side_center_x = (
-        segment.start_x_radius * segment.end_x_radius_scale
-        - segment.y_radius
+        segment.start_x_radius * segment.end_x_radius_scale - segment.y_radius
     )
     arc_angle = _middle_segment_end_arc_angle(segment)
     return np.array(
@@ -443,8 +427,7 @@ def generate_middle_top_lid_strands(
         if side_center_x - (arc_radius + offset) < inner_stop_x:
             inner_y_radius = math.sqrt(
                 max(
-                    (arc_radius + offset) ** 2
-                    - (side_center_x - inner_stop_x) ** 2,
+                    (arc_radius + offset) ** 2 - (side_center_x - inner_stop_x) ** 2,
                     0.0,
                 )
             )
@@ -460,12 +443,8 @@ def generate_middle_top_lid_strands(
         )
         side_dx = np.sqrt(np.maximum(strand_radius * strand_radius - y**2, 0.0))
         z = np.zeros_like(y)
-        left_arc = np.column_stack((-side_center_x + side_dx, y, z)).astype(
-            np.float32
-        )
-        right_arc = np.column_stack((side_center_x - side_dx, y, z)).astype(
-            np.float32
-        )
+        left_arc = np.column_stack((-side_center_x + side_dx, y, z)).astype(np.float32)
+        right_arc = np.column_stack((side_center_x - side_dx, y, z)).astype(np.float32)
         lid_strands.append(
             _middle_top_local_to_world(left_arc, middle_segment, middle_polyline)
         )
@@ -606,9 +585,27 @@ def _lid_visualization_from_strands(
     )
 
 
+def _show_plotter(plotter: pv.Plotter) -> int:
+    try:
+        plotter.show(interactive_update=True, auto_close=False)
+        while not plotter._closed:
+            plotter.update(stime=10)
+    except KeyboardInterrupt:
+        plotter.close()
+        return 130
+    plotter.close()
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--save", action="store_true")
+    output_mode = parser.add_mutually_exclusive_group()
+    output_mode.add_argument("--save", action="store_true")
+    output_mode.add_argument(
+        "--light",
+        action="store_true",
+        help="show the centerline as a light-blue tube on white",
+    )
     args = parser.parse_args()
 
     distance_between_base_pairs = 0.34
@@ -618,9 +615,37 @@ def main() -> int:
     lid_strands = generate_middle_top_lid_strands(
         dna_molecule_radius=dna_molecule_radius,
     )
-    base_pair_centers = reparametrize_arc_length(
-        polyline, distance_between_base_pairs
-    )
+    if args.light:
+        plotter = pv.Plotter()
+        plotter.set_background("white")  # type: ignore
+        light_tube = cast(
+            pv.PolyData,
+            pv.lines_from_points(polyline).tube(
+                radius=dna_molecule_radius,
+                n_sides=12,
+            ),
+        )
+        plotter.add_mesh(  # type: ignore
+            light_tube,
+            color="lightblue",
+            smooth_shading=True,
+        )
+        for lid_strand in lid_strands:
+            lid_tube = cast(
+                pv.PolyData,
+                pv.lines_from_points(lid_strand).tube(
+                    radius=dna_molecule_radius,
+                    n_sides=12,
+                ),
+            )
+            plotter.add_mesh(  # type: ignore
+                lid_tube,
+                color="lightblue",
+                smooth_shading=True,
+            )
+        return _show_plotter(plotter)
+
+    base_pair_centers = reparametrize_arc_length(polyline, distance_between_base_pairs)
     dna_segment_starts, dna_segment_ends, dna_segment_colors = (
         dna_molecule_line_segments_from_base_pair_centers(
             base_pair_centers=base_pair_centers,
@@ -684,15 +709,7 @@ def main() -> int:
         line_width=4,
         render_lines_as_tubes=True,
     )
-    try:
-        plotter.show(interactive_update=True, auto_close=False)
-        while not plotter._closed:
-            plotter.update(stime=10)
-    except KeyboardInterrupt:
-        plotter.close()
-        return 130
-    plotter.close()
-    return 0
+    return _show_plotter(plotter)
 
 
 if __name__ == "__main__":

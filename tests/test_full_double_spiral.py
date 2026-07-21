@@ -7,7 +7,7 @@ from autorigami.geometry.reparametrize import (
     reparametrize_vertex_count,
 )
 from autorigami.mesh_io import dna_molecule_mesh_from_base_pair_centers
-from autorigami.spiral_generation.full_double_spiral import (
+from autorigami.spiral_generation.three_way_tube_v1 import (
     SpiralBase,
     MiddleSegment,
     generate_full_spiral,

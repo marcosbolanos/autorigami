@@ -111,3 +111,26 @@ def test_native_tangent_point_evaluation_matches_python_oracle() -> None:
     np.testing.assert_allclose(
         hierarchical["differential"], exact["differential"], atol=1e-12
     )
+
+
+def test_hierarchical_tangent_point_tracks_dense_reference() -> None:
+    parameters = np.linspace(0.0, 5.0 * np.pi, 81)
+    polyline = np.column_stack(
+        (
+            4.0 * np.cos(parameters),
+            4.0 * np.sin(parameters),
+            0.35 * parameters,
+        )
+    ).astype(np.float32)
+    exact = evaluate_tangent_point_exact(polyline, 2.6, 1.0, 4.0)
+    hierarchical = evaluate_tangent_point_hierarchical(
+        polyline, 2.6, 1.0, 4.0, opening_angle=0.5, leaf_size=8
+    )
+
+    assert hierarchical["approximated_cluster_count"] > 0
+    assert hierarchical["exact_pair_count"] < exact["exact_pair_count"]
+    assert np.isclose(hierarchical["energy"], exact["energy"], rtol=5e-3)
+    differential_relative_error = np.linalg.norm(
+        hierarchical["differential"] - exact["differential"]
+    ) / np.linalg.norm(exact["differential"])
+    assert differential_relative_error < 3e-2

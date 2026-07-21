@@ -92,6 +92,7 @@ class ArcLengthProjection:
     total_length: float
     barycenter: FloatArray
     sampling_interval: float
+    sampling_fractions: FloatArray
 
     @classmethod
     def from_polyline(
@@ -100,15 +101,20 @@ class ArcLengthProjection:
         sampling_interval: float,
     ) -> ArcLengthProjection:
         points = np.asarray(polyline, dtype=np.float64)
+        edge_lengths = np.linalg.norm(np.diff(points, axis=0), axis=1)
+        total_length = float(np.sum(edge_lengths))
         return cls(
             vertex_count=len(points),
-            total_length=float(np.linalg.norm(np.diff(points, axis=0), axis=1).sum()),
+            total_length=total_length,
             barycenter=np.mean(points, axis=0),
             sampling_interval=sampling_interval,
+            sampling_fractions=np.concatenate(
+                ([0.0], np.cumsum(edge_lengths) / total_length)
+            ),
         )
 
     def project(self, polyline: Polyline | FloatArray) -> FloatArray:
-        """Restore length, uniform sampling, vertex count, and barycenter."""
+        """Restore length, reference arc sampling, vertex count, and barycenter."""
         projected = np.asarray(polyline, dtype=np.float64)
         for _ in range(3):
             current_length = float(
@@ -118,13 +124,17 @@ class ArcLengthProjection:
             projected = center + (self.total_length / current_length) * (
                 projected - center
             )
-            projected = np.asarray(
-                reparametrize_vertex_count(
-                    np.asarray(projected, dtype=np.float32),
-                    self.vertex_count,
-                ),
-                dtype=np.float64,
-            )
+            edge_lengths = np.linalg.norm(np.diff(projected, axis=0), axis=1)
+            cumulative_lengths = np.concatenate(([0.0], np.cumsum(edge_lengths)))
+            targets = self.sampling_fractions * cumulative_lengths[-1]
+            indices = np.searchsorted(cumulative_lengths, targets, side="right")
+            indices = np.clip(indices - 1, 0, len(edge_lengths) - 1)
+            edge_fractions = (targets - cumulative_lengths[indices]) / edge_lengths[
+                indices
+            ]
+            projected = (1.0 - edge_fractions[:, None]) * projected[
+                indices
+            ] + edge_fractions[:, None] * projected[indices + 1]
         return projected + self.barycenter - np.mean(projected, axis=0)
 
     def validate(self, polyline: Polyline | FloatArray) -> None:

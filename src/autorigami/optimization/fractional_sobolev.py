@@ -35,8 +35,15 @@ class FractionalSobolevPreconditioner:
             4.0 * np.sin(0.5 * np.pi * frequencies / len(points)) ** 2 / interval**2
         )
         self._eigenvalues = laplacian_eigenvalues ** (sigma + 1.0)
-        self._eigenvalues[0] = max(1e-8, 1e-6 * self._eigenvalues[1])
+        # Translation is the null mode of the curve metric. Its pseudoinverse
+        # must be zero; assigning it a tiny eigenvalue creates an enormous
+        # artificial translation and makes the KKT Schur system ill-conditioned.
+        self._eigenvalues[0] = np.inf
         self._vertex_count = len(points)
+
+    @property
+    def vertex_count(self) -> int:
+        return self._vertex_count
 
     def apply_inverse(self, differential: FloatArray) -> FloatArray:
         """Return the Sobolev descent vector for a Euclidean differential."""

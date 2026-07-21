@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from typing import cast
 
 import pyvista as pv
 import numpy as np
@@ -446,18 +447,51 @@ def _pyvista_lines_from_segments(
     return polydata
 
 
+def _show_plotter(plotter: pv.Plotter) -> int:
+    try:
+        plotter.show(interactive_update=True, auto_close=False)
+        while not plotter._closed:
+            plotter.update(stime=10)
+    except KeyboardInterrupt:
+        plotter.close()
+        return 130
+    plotter.close()
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--save", action="store_true")
+    output_mode = parser.add_mutually_exclusive_group()
+    output_mode.add_argument("--save", action="store_true")
+    output_mode.add_argument(
+        "--light",
+        action="store_true",
+        help="show the centerline as a light-blue tube on white",
+    )
     args = parser.parse_args()
 
     distance_between_base_pairs = 0.34
     dna_molecule_radius = 1.05
     dna_segment_radius = 0.05
     polyline = generate_full_spiral()
-    base_pair_centers = reparametrize_arc_length(
-        polyline, distance_between_base_pairs
-    )
+    if args.light:
+        plotter = pv.Plotter()
+        plotter.set_background("white")  # type: ignore
+        light_tube = cast(
+            pv.PolyData,
+            pv.lines_from_points(polyline).tube(
+                radius=dna_molecule_radius,
+                n_sides=12,
+            ),
+        )
+        plotter.add_mesh(  # type: ignore
+            light_tube,
+            color="lightblue",
+            smooth_shading=True,
+        )
+        return _show_plotter(plotter)
+
+    base_pair_centers = reparametrize_arc_length(polyline, distance_between_base_pairs)
     dna_segment_starts, dna_segment_ends, dna_segment_colors = (
         dna_molecule_line_segments_from_base_pair_centers(
             base_pair_centers=base_pair_centers,
@@ -508,15 +542,7 @@ def main() -> int:
         line_width=2,
         render_lines_as_tubes=True,
     )
-    try:
-        plotter.show(interactive_update=True, auto_close=False)
-        while not plotter._closed:
-            plotter.update(stime=10)
-    except KeyboardInterrupt:
-        plotter.close()
-        return 130
-    plotter.close()
-    return 0
+    return _show_plotter(plotter)
 
 
 if __name__ == "__main__":

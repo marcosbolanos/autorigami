@@ -23,6 +23,7 @@ source = { editable = "." }
 dependencies = [
     { name = "jaxtyping" },
     { name = "numpy" },
+    { name = "pillow" },
     { name = "pyvista" },
     { name = "scipy" },
     { name = "trimesh" },
@@ -43,6 +44,7 @@ dev = [
 requires-dist = [
     { name = "jaxtyping", specifier = ">=0.3.11" },
     { name = "numpy", specifier = ">=2.0.0" },
+    { name = "pillow", specifier = ">=12.2.0" },
     { name = "pyvista", specifier = ">=0.48.4" },
     { name = "scipy", specifier = ">=1.14.0" },
     { name = "trimesh", specifier = ">=4.11.5" },

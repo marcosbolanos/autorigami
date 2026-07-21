@@ -21,13 +21,25 @@ from autorigami.geometry.separation import (
     check_self_intersections,
     get_candidate_intersecting_edges,
 )
+from autorigami.optimization.constraints import active_constraint_jacobian
 from autorigami.optimization.fractional_sobolev import (
     FractionalSobolevPreconditioner,
 )
+from autorigami.optimization.projected_flow import solve_fractional_kkt
 from autorigami.types import Polyline
 
 FloatArray = npt.NDArray[np.float64]
 Termination = Literal["step_limit", "stationary", "constraint_blocked"]
+
+_MAXIMUM_STEP_REDUCTIONS = 12
+_HIERARCHY_OPENING_ANGLE = 0.5
+_HIERARCHY_LEAF_SIZE = 8
+_CONSTRAINT_TOLERANCE = 1e-5
+_CONTACT_ACTIVATION_DISTANCE = 5e-3
+_CURVATURE_ACTIVATION_ANGLE = float(np.deg2rad(0.1))
+_KKT_REGULARIZATION = 1e-7
+_KKT_RELATIVE_TOLERANCE = 1e-4
+_KKT_MAXIMUM_ITERATIONS = 80
 
 
 class NativeTangentPointEvaluation(TypedDict):
@@ -40,26 +52,6 @@ class NativeTangentPointEvaluation(TypedDict):
 
 
 @dataclass(frozen=True)
-class SeparationOptimizationSettings:
-    """Numerical controls for adhesive separation optimization."""
-
-    steps: int = 20
-    maximum_vertex_step: float = 2e-2
-    maximum_step_reductions: int = 12
-    opening_angle: float = 0.5
-    leaf_size: int = 8
-    constraint_tolerance: float = 1e-5
-
-    def __post_init__(self) -> None:
-        assert self.steps >= 0
-        assert self.maximum_vertex_step > 0.0
-        assert self.maximum_step_reductions >= 0
-        assert self.opening_angle > 0.0
-        assert self.leaf_size > 0
-        assert self.constraint_tolerance > 0.0
-
-
-@dataclass(frozen=True)
 class SeparationOptimizationIteration:
     energy: float
     step_size: float
@@ -68,6 +60,12 @@ class SeparationOptimizationIteration:
     maximum_edge_length_error: float
     maximum_angle: float
     minimum_separation: float
+    active_contact_count: int
+    active_curvature_count: int
+    kkt_iterations: int
+    kkt_residual: float
+    exact_pair_count: int
+    approximated_cluster_count: int
 
 
 @dataclass(frozen=True)
@@ -96,8 +94,8 @@ def optimize_separation(
     edge_length: float = DEFAULT_EDGE_LENGTH_NM,
     min_distance: float = DEFAULT_MIN_DISTANCE,
     local_exclusion_length: float = 34.0,
-    attraction_strength: float = 1.0,
-    settings: SeparationOptimizationSettings = SeparationOptimizationSettings(),
+    steps: int = 5,
+    maximum_vertex_step: float = 2e-2,
 ) -> SeparationOptimizationResult:
     """Optimize adhesive contacts with validated fractional-Sobolev descent.
 
@@ -113,7 +111,8 @@ def optimize_separation(
     assert edge_length > 0.0
     assert min_distance > 0.0
     assert local_exclusion_length > 0.0
-    assert attraction_strength > 0.0
+    assert steps >= 0
+    assert maximum_vertex_step > 0.0
 
     points = np.asarray(polyline, dtype=np.float64).copy()
     ignored_adjacent_edges = int(np.ceil(local_exclusion_length / edge_length))
@@ -124,22 +123,36 @@ def optimize_separation(
         target_angle=target_angle,
         min_distance=min_distance,
         ignored_adjacent_edges=ignored_adjacent_edges,
-        tolerance=settings.constraint_tolerance,
+        tolerance=_CONSTRAINT_TOLERANCE,
     )
 
     diagnostics: list[SeparationOptimizationIteration] = []
     termination: Termination = "step_limit"
-    for _ in range(settings.steps):
+    for _ in range(steps):
         evaluation = _evaluate_energy(
             points,
             min_distance=min_distance,
-            attraction_strength=attraction_strength,
             local_exclusion_length=local_exclusion_length,
-            settings=settings,
         )
         differential = np.asarray(evaluation["differential"], dtype=np.float64)
         preconditioner = FractionalSobolevPreconditioner(points, sigma=0.75)
-        direction = -preconditioner.apply_inverse(differential)
+        constraints = active_constraint_jacobian(
+            points,
+            target_angle=target_angle,
+            min_distance=min_distance,
+            ignored_adjacent_edges=ignored_adjacent_edges,
+            contact_activation_distance=_CONTACT_ACTIVATION_DISTANCE,
+            curvature_activation_angle=_CURVATURE_ACTIVATION_ANGLE,
+        )
+        projected = solve_fractional_kkt(
+            differential,
+            metric=preconditioner,
+            constraints=constraints,
+            regularization=_KKT_REGULARIZATION,
+            relative_tolerance=_KKT_RELATIVE_TOLERANCE,
+            maximum_iterations=_KKT_MAXIMUM_ITERATIONS,
+        )
+        direction = projected.displacement
         direction -= np.mean(direction, axis=0)
         largest_direction = float(np.max(np.linalg.norm(direction, axis=1)))
         if largest_direction <= 1e-12:
@@ -148,7 +161,7 @@ def optimize_separation(
 
         initial_step = min(
             1.0,
-            settings.maximum_vertex_step / largest_direction,
+            maximum_vertex_step / largest_direction,
         )
         accepted = _accept_step(
             points,
@@ -160,9 +173,7 @@ def optimize_separation(
             target_angle=target_angle,
             min_distance=min_distance,
             ignored_adjacent_edges=ignored_adjacent_edges,
-            attraction_strength=attraction_strength,
             local_exclusion_length=local_exclusion_length,
-            settings=settings,
         )
         if accepted is None:
             termination = "constraint_blocked"
@@ -184,6 +195,14 @@ def optimize_separation(
                 maximum_edge_length_error=state.maximum_edge_length_error,
                 maximum_angle=state.maximum_angle,
                 minimum_separation=state.minimum_separation,
+                active_contact_count=constraints.contact_count,
+                active_curvature_count=constraints.curvature_count,
+                kkt_iterations=projected.iterations,
+                kkt_residual=projected.residual,
+                exact_pair_count=int(evaluation["exact_pair_count"]),
+                approximated_cluster_count=int(
+                    evaluation["approximated_cluster_count"]
+                ),
             )
         )
 
@@ -193,7 +212,7 @@ def optimize_separation(
         target_angle=target_angle,
         min_distance=min_distance,
         ignored_adjacent_edges=ignored_adjacent_edges,
-        tolerance=settings.constraint_tolerance,
+        tolerance=_CONSTRAINT_TOLERANCE,
     )
     return SeparationOptimizationResult(
         polyline=np.asarray(points, dtype=np.float32),
@@ -213,12 +232,10 @@ def _accept_step(
     target_angle: float,
     min_distance: float,
     ignored_adjacent_edges: int,
-    attraction_strength: float,
     local_exclusion_length: float,
-    settings: SeparationOptimizationSettings,
 ) -> tuple[FloatArray, float, float, int] | None:
     step_size = initial_step
-    for reduction in range(settings.maximum_step_reductions + 1):
+    for reduction in range(_MAXIMUM_STEP_REDUCTIONS + 1):
         candidate = parameterization.project(points + step_size * direction)
         try:
             _validate_state(
@@ -227,7 +244,7 @@ def _accept_step(
                 target_angle=target_angle,
                 min_distance=min_distance,
                 ignored_adjacent_edges=ignored_adjacent_edges,
-                tolerance=settings.constraint_tolerance,
+                tolerance=_CONSTRAINT_TOLERANCE,
             )
         except ValueError:
             step_size *= 0.5
@@ -237,9 +254,7 @@ def _accept_step(
             _evaluate_energy(
                 candidate,
                 min_distance=min_distance,
-                attraction_strength=attraction_strength,
                 local_exclusion_length=local_exclusion_length,
-                settings=settings,
             )["energy"]
         )
         armijo_bound = initial_energy + 1e-4 * step_size * directional_derivative
@@ -253,17 +268,15 @@ def _evaluate_energy(
     points: FloatArray,
     *,
     min_distance: float,
-    attraction_strength: float,
     local_exclusion_length: float,
-    settings: SeparationOptimizationSettings,
 ) -> NativeTangentPointEvaluation:
     return evaluate_tangent_point_hierarchical(
         np.asarray(points, dtype=np.float32),
         target_distance=min_distance,
-        attraction_strength=attraction_strength,
+        attraction_strength=1.0,
         local_exclusion_length=local_exclusion_length,
-        opening_angle=settings.opening_angle,
-        leaf_size=settings.leaf_size,
+        opening_angle=_HIERARCHY_OPENING_ANGLE,
+        leaf_size=_HIERARCHY_LEAF_SIZE,
     )
 
 
@@ -287,7 +300,11 @@ def _state(
     return _OptimizationState(
         maximum_edge_length_error=float(
             np.max(
-                np.abs(lengths - parameterization.sampling_interval),
+                np.abs(
+                    lengths
+                    - parameterization.total_length
+                    * np.diff(parameterization.sampling_fractions)
+                ),
                 initial=0.0,
             )
         ),
