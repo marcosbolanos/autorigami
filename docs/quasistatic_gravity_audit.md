@@ -48,10 +48,13 @@ active set is rebuilt after the correction.
 - [x] It checks arc-length sampling and runs the standard validator after
   reparametrization.
 - [x] Eighteen focused quasistatic tests pass.
-- [x] The full Python test suite passes: 73 tests.
+- [x] The clean branch Python test suite passes: 60 tests. The original dirty
+  working tree also contains thirteen unrelated experiment tests.
 - [x] Ruff passes for `src`, `tests`, and `scripts` (the repository-wide command
   is currently blocked by a pre-existing unused import in `notebooks/demo1`).
-- [x] Pyright passes with no errors or warnings.
+- [x] Pyright has no errors. A fresh editable installation reports nine
+  existing `autorigami._native` source-resolution warnings; the local dirty
+  build reported no warnings.
 
 ## Full-design results at current defaults
 

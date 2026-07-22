@@ -90,15 +90,20 @@ rsync -av --progress \
 Automated checks:
 
 ```text
-73 tests passed
+60 tests passed from a fresh clone of this branch
 Ruff passed for src, tests, and scripts
-Pyright: 0 errors, 0 warnings
+Pyright: 0 errors, 9 existing native-extension source-resolution warnings
 git diff --check passed
 ```
 
 The repository-wide Ruff command also inspects notebooks and is independently
 blocked by a pre-existing unused import in `notebooks/demo1.ipynb`. Do not hide
 or conflate that unrelated issue with this workload.
+
+The original dirty working tree reported 73 tests and no Pyright warnings
+because it contained thirteen excluded experiment tests and a locally built
+native-extension source state. The fresh branch verification above is the
+portable result that should be used on the remote machine.
 
 Full-design observations:
 
