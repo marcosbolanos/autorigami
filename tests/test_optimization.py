@@ -1,7 +1,10 @@
+import inspect
+
 import numpy as np
 import pytest
 
 from autorigami.geometry.curvature import get_polyline_angles
+from autorigami.geometry.reparametrize import reparametrize_arc_length
 from autorigami.geometry.separation import check_self_intersections
 import autorigami.optimization.workloads as workloads
 from autorigami.optimization.energies import (
@@ -15,16 +18,31 @@ from autorigami.optimization.workloads import (
 )
 
 
+def test_compress_along_axis_uses_validated_dna_defaults() -> None:
+    parameters = inspect.signature(compress_along_axis).parameters
+
+    assert parameters["target_angle"].default == np.deg2rad(3.25)
+    assert parameters["edge_length"].default == 0.34
+    assert parameters["min_distance"].default == 2.6
+    assert parameters["local_exclusion_length"].default == 34.0
+    assert "contact_capture_distance" not in parameters
+    assert "contact_weight" not in parameters
+    assert parameters["steps"].default == 10
+    assert parameters["maximum_vertex_step"].default == 0.05
+
+
 def test_compress_along_axis_preserves_constraints() -> None:
-    polyline = np.array(
-        [
-            [0.0, 0.0, 0.0],
-            [1.0, 0.0, 1.0],
-            [2.0, 0.5, 2.0],
-            [3.0, 1.5, 3.0],
-            [4.0, 3.0, 4.0],
-        ],
-        dtype=np.float32,
+    parameter = np.linspace(0.0, 2.0 * np.pi, 201)
+    raw_polyline = np.column_stack(
+        (
+            2.0 * np.cos(parameter),
+            2.0 * np.sin(parameter),
+            parameter,
+        )
+    ).astype(np.float32)
+    polyline = reparametrize_arc_length(
+        raw_polyline,
+        0.5,
     )
     initial_length = np.sum(np.linalg.norm(np.diff(polyline, axis=0), axis=1))
 
@@ -34,9 +52,8 @@ def test_compress_along_axis_preserves_constraints() -> None:
         target_angle=2.0,
         edge_length=0.5,
         min_distance=0.2,
-        compression_fraction=0.05,
         steps=2,
-        separation_steps=20,
+        maximum_vertex_step=0.05,
     )
 
     final_edges = np.linalg.norm(np.diff(compressed, axis=0), axis=1)

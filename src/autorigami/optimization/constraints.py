@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+# pyright: reportOptionalSubscript=false
+
+from dataclasses import dataclass, field
 
 import numpy as np
 import numpy.typing as npt
@@ -15,13 +17,38 @@ FloatArray = npt.NDArray[np.float64]
 
 
 @dataclass(frozen=True)
+class EqualityConstraintSystem:
+    """Values and sparse Jacobian for constraints defined by value == 0."""
+
+    values: FloatArray
+    jacobian: csr_matrix
+    vertex_count: int
+
+    def __post_init__(self) -> None:
+        assert self.values.shape == (self.jacobian.shape[0],)
+        assert self.jacobian.shape[1] == 3 * self.vertex_count
+
+
+@dataclass(frozen=True)
 class ActiveConstraintJacobian:
     """Sparse gradients of the currently active geometric constraints."""
 
     matrix: csr_matrix
+    slacks: FloatArray
     vertex_count: int
     contact_count: int
     curvature_count: int
+    contact_pairs: tuple[tuple[int, int], ...] = ()
+    contact_parameters: FloatArray = field(
+        default_factory=lambda: np.empty((0, 3), dtype=np.float64)
+    )
+    curvature_vertices: npt.NDArray[np.int64] = field(
+        default_factory=lambda: np.empty(0, dtype=np.int64)
+    )
+
+    def __post_init__(self) -> None:
+        assert self.matrix.shape == (self.constraint_count, 3 * self.vertex_count)
+        assert self.slacks.shape == (self.constraint_count,)
 
     @property
     def constraint_count(self) -> int:
@@ -37,6 +64,36 @@ class ActiveConstraintJacobian:
         assert multipliers.shape == (self.constraint_count,)
         return np.asarray(self.matrix.T @ multipliers, dtype=np.float64).reshape(
             (-1, 3)
+        )
+
+    def select(self, indices: npt.NDArray[np.int64]) -> ActiveConstraintJacobian:
+        """Return constraint rows selected by their original indices."""
+        assert indices.ndim == 1
+        assert np.all((0 <= indices) & (indices < self.constraint_count))
+        contact_count = int(np.count_nonzero(indices < self.contact_count))
+        contact_indices = indices[indices < self.contact_count]
+        curvature_indices = indices[indices >= self.contact_count] - self.contact_count
+        return ActiveConstraintJacobian(
+            matrix=self.matrix[indices],
+            slacks=self.slacks[indices],
+            vertex_count=self.vertex_count,
+            contact_count=contact_count,
+            curvature_count=len(indices) - contact_count,
+            contact_pairs=(
+                tuple(self.contact_pairs[index] for index in contact_indices)
+                if self.contact_pairs
+                else ()
+            ),
+            contact_parameters=(
+                self.contact_parameters[contact_indices]
+                if len(self.contact_parameters)
+                else np.empty((0, 3), dtype=np.float64)
+            ),
+            curvature_vertices=(
+                self.curvature_vertices[curvature_indices]
+                if len(self.curvature_vertices)
+                else np.empty(0, dtype=np.int64)
+            ),
         )
 
 
@@ -87,6 +144,7 @@ def active_constraint_jacobian(
     rows: list[int] = []
     columns: list[int] = []
     values: list[float] = []
+    slacks = np.empty(row_count, dtype=np.float64)
 
     def append_vertex_gradient(
         row: int,
@@ -101,6 +159,7 @@ def active_constraint_jacobian(
     for row, ((first, second), parameters) in enumerate(active_contacts):
         distance, first_parameter, second_parameter = map(float, parameters)
         assert distance > 0.0, "active contact distance must be positive"
+        slacks[row] = distance - min_distance
         first_point = (1.0 - first_parameter) * points[
             first
         ] + first_parameter * points[first + 1]
@@ -132,6 +191,7 @@ def active_constraint_jacobian(
             sine * outgoing_length
         )
         row = curvature_row_offset + offset
+        slacks[row] = target_angle - float(angles[angle_index])
         # The feasible constraint is target_angle - angle >= 0.
         append_vertex_gradient(row, vertex - 1, incoming_angle_gradient)
         append_vertex_gradient(
@@ -149,7 +209,13 @@ def active_constraint_jacobian(
     matrix.sum_duplicates()
     return ActiveConstraintJacobian(
         matrix=matrix,
+        slacks=slacks,
         vertex_count=len(points),
         contact_count=len(active_contacts),
         curvature_count=len(active_curvatures),
+        contact_pairs=tuple(pair for pair, _ in active_contacts),
+        contact_parameters=np.asarray(
+            [parameters for _, parameters in active_contacts], dtype=np.float64
+        ).reshape((-1, 3)),
+        curvature_vertices=np.asarray(active_curvatures + 1, dtype=np.int64),
     )

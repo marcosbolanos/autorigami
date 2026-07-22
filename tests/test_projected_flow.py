@@ -27,6 +27,7 @@ def test_matrix_free_fractional_kkt_matches_dense_reference() -> None:
     dense_jacobian = rng.normal(size=(4, points.size))
     constraints = ActiveConstraintJacobian(
         matrix=csr_matrix(dense_jacobian),
+        slacks=np.ones(4),
         vertex_count=len(points),
         contact_count=2,
         curvature_count=2,
@@ -37,6 +38,7 @@ def test_matrix_free_fractional_kkt_matches_dense_reference() -> None:
         differential,
         metric=metric,
         constraints=constraints,
+        required_constraint_changes=np.zeros(4),
         regularization=regularization,
         relative_tolerance=1e-11,
         maximum_iterations=100,
