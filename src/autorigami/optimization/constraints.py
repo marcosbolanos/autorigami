@@ -127,79 +127,42 @@ def active_constraint_jacobian(
         min_distance=contact_limit,
         n_ignored_adjacent_edges=ignored_adjacent_edges,
     )
-    parameter_data = segment_segment_distance_parameters(
-        np.asarray(points, dtype=np.float32), pairs
-    )
-    active_contacts = [
-        (pair, parameters)
-        for pair, parameters in zip(pairs, parameter_data, strict=True)
-        if float(parameters[0]) <= contact_limit
-    ]
+    parameter_data = np.asarray(
+        segment_segment_distance_parameters(
+            np.asarray(points, dtype=np.float32), pairs
+        ),
+        dtype=np.float64,
+    ).reshape((-1, 3))
+    pair_data = np.asarray(pairs, dtype=np.int64).reshape((-1, 2))
+    active_contact_mask = parameter_data[:, 0] <= contact_limit
+    active_parameters = parameter_data[active_contact_mask]
+    active_pairs = pair_data[active_contact_mask]
 
     angles = get_polyline_angles(np.asarray(points, dtype=np.float32))
     active_curvatures = np.flatnonzero(
         angles >= target_angle - curvature_activation_angle
     )
-    row_count = len(active_contacts) + len(active_curvatures)
-    rows: list[int] = []
-    columns: list[int] = []
-    values: list[float] = []
+    contact_count = len(active_pairs)
+    row_count = contact_count + len(active_curvatures)
     slacks = np.empty(row_count, dtype=np.float64)
 
-    def append_vertex_gradient(
-        row: int,
-        vertex: int,
-        gradient: FloatArray,
-    ) -> None:
-        for coordinate in range(3):
-            rows.append(row)
-            columns.append(3 * vertex + coordinate)
-            values.append(float(gradient[coordinate]))
-
-    for row, ((first, second), parameters) in enumerate(active_contacts):
-        distance, first_parameter, second_parameter = map(float, parameters)
-        assert distance > 0.0, "active contact distance must be positive"
-        slacks[row] = distance - min_distance
-        first_point = (1.0 - first_parameter) * points[
-            first
-        ] + first_parameter * points[first + 1]
-        second_point = (1.0 - second_parameter) * points[
-            second
-        ] + second_parameter * points[second + 1]
-        normal = (first_point - second_point) / distance
-        append_vertex_gradient(row, first, (1.0 - first_parameter) * normal)
-        append_vertex_gradient(row, first + 1, first_parameter * normal)
-        append_vertex_gradient(row, second, -(1.0 - second_parameter) * normal)
-        append_vertex_gradient(row, second + 1, -second_parameter * normal)
-
-    curvature_row_offset = len(active_contacts)
-    for offset, angle_index in enumerate(active_curvatures):
-        vertex = int(angle_index) + 1
-        incoming = points[vertex] - points[vertex - 1]
-        outgoing = points[vertex + 1] - points[vertex]
-        incoming_length = float(np.linalg.norm(incoming))
-        outgoing_length = float(np.linalg.norm(outgoing))
-        assert incoming_length > 0.0 and outgoing_length > 0.0
-        incoming_unit = incoming / incoming_length
-        outgoing_unit = outgoing / outgoing_length
-        cosine = float(np.clip(incoming_unit @ outgoing_unit, -1.0, 1.0))
-        sine = float(np.sqrt(max(1e-12, 1.0 - cosine * cosine)))
-        incoming_angle_gradient = -(outgoing_unit - cosine * incoming_unit) / (
-            sine * incoming_length
+    contact_rows, contact_columns, contact_values = _contact_jacobian_entries(
+        points,
+        active_pairs,
+        active_parameters,
+    )
+    slacks[:contact_count] = active_parameters[:, 0] - min_distance
+    curvature_rows, curvature_columns, curvature_values = (
+        _curvature_jacobian_entries(
+            points,
+            active_curvatures,
+            row_offset=contact_count,
         )
-        outgoing_angle_gradient = -(incoming_unit - cosine * outgoing_unit) / (
-            sine * outgoing_length
-        )
-        row = curvature_row_offset + offset
-        slacks[row] = target_angle - float(angles[angle_index])
-        # The feasible constraint is target_angle - angle >= 0.
-        append_vertex_gradient(row, vertex - 1, incoming_angle_gradient)
-        append_vertex_gradient(
-            row,
-            vertex,
-            -incoming_angle_gradient + outgoing_angle_gradient,
-        )
-        append_vertex_gradient(row, vertex + 1, -outgoing_angle_gradient)
+    )
+    slacks[contact_count:] = target_angle - angles[active_curvatures]
+    rows = np.concatenate((contact_rows, curvature_rows))
+    columns = np.concatenate((contact_columns, curvature_columns))
+    values = np.concatenate((contact_values, curvature_values))
 
     matrix = csr_matrix(
         (values, (rows, columns)),
@@ -211,11 +174,100 @@ def active_constraint_jacobian(
         matrix=matrix,
         slacks=slacks,
         vertex_count=len(points),
-        contact_count=len(active_contacts),
+        contact_count=contact_count,
         curvature_count=len(active_curvatures),
-        contact_pairs=tuple(pair for pair, _ in active_contacts),
-        contact_parameters=np.asarray(
-            [parameters for _, parameters in active_contacts], dtype=np.float64
-        ).reshape((-1, 3)),
+        contact_pairs=tuple(map(tuple, active_pairs.tolist())),
+        contact_parameters=active_parameters,
         curvature_vertices=np.asarray(active_curvatures + 1, dtype=np.int64),
     )
+
+
+def _contact_jacobian_entries(
+    points: FloatArray,
+    pairs: npt.NDArray[np.int64],
+    parameters: FloatArray,
+) -> tuple[npt.NDArray[np.int64], npt.NDArray[np.int64], FloatArray]:
+    """Vectorize four endpoint blocks for exact segment-distance rows."""
+    assert pairs.shape == (len(parameters), 2)
+    assert parameters.shape == (len(pairs), 3)
+    if not len(pairs):
+        empty_indices = np.empty(0, dtype=np.int64)
+        return empty_indices, empty_indices, np.empty(0, dtype=np.float64)
+    distance = parameters[:, 0]
+    assert np.all(distance > 0.0), "active contact distance must be positive"
+    first_parameter = parameters[:, 1]
+    second_parameter = parameters[:, 2]
+    first = pairs[:, 0]
+    second = pairs[:, 1]
+    first_point = (
+        (1.0 - first_parameter[:, None]) * points[first]
+        + first_parameter[:, None] * points[first + 1]
+    )
+    second_point = (
+        (1.0 - second_parameter[:, None]) * points[second]
+        + second_parameter[:, None] * points[second + 1]
+    )
+    normal = (first_point - second_point) / distance[:, None]
+    gradients = np.stack(
+        (
+            (1.0 - first_parameter[:, None]) * normal,
+            first_parameter[:, None] * normal,
+            -(1.0 - second_parameter[:, None]) * normal,
+            -second_parameter[:, None] * normal,
+        ),
+        axis=1,
+    )
+    vertices = np.stack((first, first + 1, second, second + 1), axis=1)
+    rows = np.broadcast_to(
+        np.arange(len(pairs), dtype=np.int64)[:, None, None],
+        gradients.shape,
+    )
+    columns = 3 * vertices[:, :, None] + np.arange(3, dtype=np.int64)
+    return rows.reshape(-1), columns.reshape(-1), gradients.reshape(-1)
+
+
+def _curvature_jacobian_entries(
+    points: FloatArray,
+    angle_indices: npt.NDArray[np.int64],
+    *,
+    row_offset: int,
+) -> tuple[npt.NDArray[np.int64], npt.NDArray[np.int64], FloatArray]:
+    """Vectorize three vertex blocks for turning-angle slack rows."""
+    assert angle_indices.ndim == 1
+    assert row_offset >= 0
+    if not len(angle_indices):
+        empty_indices = np.empty(0, dtype=np.int64)
+        return empty_indices, empty_indices, np.empty(0, dtype=np.float64)
+    vertices = angle_indices + 1
+    incoming = points[vertices] - points[vertices - 1]
+    outgoing = points[vertices + 1] - points[vertices]
+    incoming_length = np.linalg.norm(incoming, axis=1)
+    outgoing_length = np.linalg.norm(outgoing, axis=1)
+    assert np.all(incoming_length > 0.0) and np.all(outgoing_length > 0.0)
+    incoming_unit = incoming / incoming_length[:, None]
+    outgoing_unit = outgoing / outgoing_length[:, None]
+    cosine = np.clip(np.sum(incoming_unit * outgoing_unit, axis=1), -1.0, 1.0)
+    sine = np.sqrt(np.maximum(1e-12, 1.0 - cosine * cosine))
+    incoming_gradient = -(
+        outgoing_unit - cosine[:, None] * incoming_unit
+    ) / (sine * incoming_length)[:, None]
+    outgoing_gradient = -(
+        incoming_unit - cosine[:, None] * outgoing_unit
+    ) / (sine * outgoing_length)[:, None]
+    gradients = np.stack(
+        (
+            incoming_gradient,
+            -incoming_gradient + outgoing_gradient,
+            -outgoing_gradient,
+        ),
+        axis=1,
+    )
+    gradient_vertices = np.stack(
+        (vertices - 1, vertices, vertices + 1), axis=1
+    )
+    rows = np.broadcast_to(
+        (row_offset + np.arange(len(vertices), dtype=np.int64))[:, None, None],
+        gradients.shape,
+    )
+    columns = 3 * gradient_vertices[:, :, None] + np.arange(3, dtype=np.int64)
+    return rows.reshape(-1), columns.reshape(-1), gradients.reshape(-1)
