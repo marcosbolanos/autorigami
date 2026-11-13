@@ -367,7 +367,19 @@ class TopSegment(SpiralObject):
         return polyline[0] if scalar_input else polyline
 
 
-def generate_full_spiral():
+# Each top turn moves sideways by less than the 2.6 nm separation with this
+# scale, thus each turn can rest on the turn below when the shape is packed.
+PACKABLE_TOP_END_X_RADIUS_SCALE = 0.5 * (1.0 + math.sqrt(3))
+
+
+def generate_full_spiral(
+    top_end_x_radius_scale: float = PACKABLE_TOP_END_X_RADIUS_SCALE,
+) -> Polyline:
+    """Return the V1 three-way tube centerline.
+
+    top_end_x_radius_scale: ratio of the last to the first x radius of the top
+    segment. `math.sqrt(3)` gives the original, wider arms.
+    """
     nm_per_full_turn = 2.6
     length = 40
     radius = 16
@@ -414,7 +426,7 @@ def generate_full_spiral():
         turns=0.5 * turns * middle_scale,
         height=length * middle_scale,
         start_x_radius=radius * middle_segment.end_x_radius_scale,
-        end_x_radius_scale=math.sqrt(3),
+        end_x_radius_scale=top_end_x_radius_scale,
         y_radius=radius,
         phase_offset=current_angle - middle_segment.orientation_angle,
     )
