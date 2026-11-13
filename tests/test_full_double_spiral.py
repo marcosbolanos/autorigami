@@ -10,6 +10,7 @@ from autorigami.mesh_io import dna_molecule_mesh_from_base_pair_centers
 from autorigami.spiral_generation.three_way_tube_v1 import (
     SpiralBase,
     MiddleSegment,
+    ORIGINAL_TOP_END_X_RADIUS_SCALE,
     generate_full_spiral,
 )
 
@@ -21,6 +22,15 @@ def test_generate_full_spiral_concatenates_segments() -> None:
     assert polyline[9999, 2] > 0.0
     assert polyline[19998, 2] > polyline[9999, 2]
     assert polyline[-1, 2] > polyline[19998, 2]
+
+
+def test_generate_full_spiral_can_make_the_original_wider_top() -> None:
+    packable = generate_full_spiral()
+    original = generate_full_spiral(ORIGINAL_TOP_END_X_RADIUS_SCALE)
+
+    assert original.shape == packable.shape
+    assert np.allclose(original[:19999], packable[:19999])
+    assert np.ptp(original[:, 0]) > np.ptp(packable[:, 0]) + 10.0
 
 
 def test_get_points_accepts_scalar_and_array_inputs() -> None:

@@ -370,6 +370,9 @@ class TopSegment(SpiralObject):
 # Each top turn moves sideways by less than the 2.6 nm separation with this
 # scale, thus each turn can rest on the turn below when the shape is packed.
 PACKABLE_TOP_END_X_RADIUS_SCALE = 0.5 * (1.0 + math.sqrt(3))
+# The scale of the first design. Its top turns are too far apart to rest on
+# each other, thus the packed arms become flat.
+ORIGINAL_TOP_END_X_RADIUS_SCALE = math.sqrt(3)
 
 
 def generate_full_spiral(
@@ -378,7 +381,8 @@ def generate_full_spiral(
     """Return the V1 three-way tube centerline.
 
     top_end_x_radius_scale: ratio of the last to the first x radius of the top
-    segment. `math.sqrt(3)` gives the original, wider arms.
+    segment. `ORIGINAL_TOP_END_X_RADIUS_SCALE` gives the first design, which
+    has wider arms.
     """
     nm_per_full_turn = 2.6
     length = 40
