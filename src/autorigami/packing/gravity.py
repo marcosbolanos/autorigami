@@ -157,6 +157,11 @@ def _repair_horizontal_kinks(polyline: Polyline) -> Polyline:
         edge_length=DEFAULT_EDGE_LENGTH_NM,
         coordinate_mask=(True, True, False),
     )
+    # Arc-length sampling leaves a last edge of any length down to zero. Two
+    # vertices at almost the same xy would settle at the same point.
+    last_edge = float(np.linalg.norm(flat[-1, :2] - flat[-2, :2]))
+    if last_edge < 0.5 * DEFAULT_EDGE_LENGTH_NM:
+        flat = flat[:-1]
     old_arc = _horizontal_arc_fraction(polyline)
     flat[:, 2] = np.interp(_horizontal_arc_fraction(flat), old_arc, polyline[:, 2])
     return np.ascontiguousarray(flat, dtype=np.float32)

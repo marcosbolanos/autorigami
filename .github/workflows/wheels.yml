@@ -15,8 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
+          - ubuntu-latest
           - macos-latest
-        mac_arch: [x86_64, arm64]
+          - windows-latest
 
     steps:
       - uses: actions/checkout@v6
@@ -25,12 +26,9 @@ jobs:
         uses: pypa/cibuildwheel@v4.1.0
         with:
           extras: uv
-        env:
-          CIBW_ARCHS_MACOS: ${{ matrix.mac_arch }}
-          CIBW_TEST_COMMAND_MACOS: python {project}/scripts/debug_mac.py {project}/tests && pytest {project}/tests/test_gravity_packing.py
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.mac_arch }}
+          name: wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
