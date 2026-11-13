@@ -12,7 +12,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "autograd>=1.9.1",
     "jaxtyping>=0.3.11",
     "numpy>=2.0.0",
     "pillow>=12.2.0",
@@ -28,15 +27,12 @@ sdist.include = [
     "cpp/CMakeLists.txt",
     "cpp/cmake/Dependencies.cmake",
     "cpp/include/autorigami/geometry.h",
-    "cpp/include/autorigami/optimization.h",
     "cpp/include/autorigami/simulation.h",
     "cpp/include/autorigami/utils.h",
     "cpp/src/bindings/geometry_bindings.cpp",
-    "cpp/src/bindings/optimization_bindings.cpp",
     "cpp/src/bindings/simulation_bindings.cpp",
     "cpp/src/bindings/module.cpp",
     "cpp/src/geometry/separation.cpp",
-    "cpp/src/optimization/tangent_point.cpp",
     "cpp/src/simulation/axial_gravity.cpp",
     "cpp/src/utils/spatial_hierarchy.cpp",
     "src/autorigami/_native.pyi",

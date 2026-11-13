@@ -2,8 +2,6 @@ import numpy as np
 
 from autorigami._native import (
     apply_separation_correction,
-    evaluate_tangent_point_exact,
-    evaluate_tangent_point_hierarchical,
     find_close_edge_pairs,
     segment_segment_distance,
     segment_segment_distance_parameters,
@@ -88,49 +86,3 @@ def test_apply_separation_correction_corrects_an_isolated_pair() -> None:
 
     assert correction_count == 1
     assert np.isclose(corrected_distance, 0.25)
-
-
-def test_native_tangent_point_evaluation_matches_python_oracle() -> None:
-    polyline = np.array(
-        [
-            [0.0, 0.0, 0.0],
-            [1.0, 0.1, 0.0],
-            [2.0, 0.4, 0.2],
-            [2.0, 2.0, 0.3],
-            [1.0, 2.2, 0.1],
-            [0.0, 2.0, 0.0],
-        ],
-        dtype=np.float32,
-    )
-    exact = evaluate_tangent_point_exact(polyline, 1.3, 0.7, 1.8)
-    hierarchical = evaluate_tangent_point_hierarchical(
-        polyline, 1.3, 0.7, 1.8, opening_angle=1e-6, leaf_size=1
-    )
-
-    assert np.isclose(hierarchical["energy"], exact["energy"], atol=1e-12)
-    np.testing.assert_allclose(
-        hierarchical["differential"], exact["differential"], atol=1e-12
-    )
-
-
-def test_hierarchical_tangent_point_tracks_dense_reference() -> None:
-    parameters = np.linspace(0.0, 5.0 * np.pi, 81)
-    polyline = np.column_stack(
-        (
-            4.0 * np.cos(parameters),
-            4.0 * np.sin(parameters),
-            0.35 * parameters,
-        )
-    ).astype(np.float32)
-    exact = evaluate_tangent_point_exact(polyline, 2.6, 1.0, 4.0)
-    hierarchical = evaluate_tangent_point_hierarchical(
-        polyline, 2.6, 1.0, 4.0, opening_angle=0.5, leaf_size=8
-    )
-
-    assert hierarchical["approximated_cluster_count"] > 0
-    assert hierarchical["exact_pair_count"] < exact["exact_pair_count"]
-    assert np.isclose(hierarchical["energy"], exact["energy"], rtol=5e-3)
-    differential_relative_error = np.linalg.norm(
-        hierarchical["differential"] - exact["differential"]
-    ) / np.linalg.norm(exact["differential"])
-    assert differential_relative_error < 3e-2

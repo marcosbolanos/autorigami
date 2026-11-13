@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypeAlias, TypedDict
+from typing import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -8,14 +8,6 @@ import numpy.typing as npt
 from autorigami.types import EdgeIndex, Polyline, Vector3
 
 SegmentSegmentDistance: TypeAlias = tuple[float, Vector3, Vector3]
-
-class TangentPointEvaluation(TypedDict):
-    energy: float
-    repulsive_energy: float
-    attractive_energy: float
-    differential: npt.NDArray[np.float64]
-    exact_pair_count: int
-    approximated_cluster_count: int
 
 def apply_separation_correction(
     polyline: Polyline,
@@ -41,20 +33,6 @@ def find_close_edge_pairs(
     ignored_adjacent_edges: int,
     leaf_size: int = 16,
 ) -> list[tuple[EdgeIndex, EdgeIndex]]: ...
-def evaluate_tangent_point_exact(
-    polyline: Polyline,
-    target_distance: float,
-    attraction_strength: float,
-    local_exclusion_length: float,
-) -> TangentPointEvaluation: ...
-def evaluate_tangent_point_hierarchical(
-    polyline: Polyline,
-    target_distance: float,
-    attraction_strength: float,
-    local_exclusion_length: float,
-    opening_angle: float = 0.25,
-    leaf_size: int = 8,
-) -> TangentPointEvaluation: ...
 
 class AxialGravitySimulation:
     def __init__(

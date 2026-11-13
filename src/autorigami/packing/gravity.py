@@ -31,7 +31,7 @@ from autorigami.geometry.validation import (
     PolylineValidationResult,
     validate_polyline,
 )
-from autorigami.optimization.workloads import fix_curvature_violations
+from autorigami.packing.curvature_repair import fix_curvature_violations
 from autorigami.types import Polyline
 
 logger = logging.getLogger(__name__)

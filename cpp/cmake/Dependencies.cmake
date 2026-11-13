@@ -35,8 +35,18 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(physx)
 
 set(PHYSX_ROOT_DIR "${physx_SOURCE_DIR}/physx")
-set(TARGET_BUILD_PLATFORM "linux")
-set(PX_OUTPUT_ARCH "x86")
+# PhysX has build files for Windows and Linux only. The Linux files also work
+# with Apple Clang, thus macOS uses them.
+if(WIN32)
+    set(TARGET_BUILD_PLATFORM "windows")
+else()
+    set(TARGET_BUILD_PLATFORM "linux")
+endif()
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64)$")
+    set(PX_OUTPUT_ARCH "arm")
+else()
+    set(PX_OUTPUT_ARCH "x86")
+endif()
 set(PX_OUTPUT_LIB_DIR "${CMAKE_BINARY_DIR}/physx-output")
 set(PX_OUTPUT_BIN_DIR "${CMAKE_BINARY_DIR}/physx-output")
 set(PX_GENERATE_STATIC_LIBRARIES ON CACHE BOOL "Build PhysX as static libraries" FORCE)
@@ -49,14 +59,22 @@ add_subdirectory(
     EXCLUDE_FROM_ALL
 )
 
-# PhysX compiles with -Werror, which fails on compilers newer than the ones
-# that NVIDIA tests. Target options come after the PhysX flags, so this wins.
+# PhysX compiles with warnings as errors, which fails on compilers newer than
+# the ones that NVIDIA tests. Target options come after the PhysX flags, so
+# this wins.
+if(MSVC)
+    set(AUTORIGAMI_PHYSX_NO_WARNING_ERRORS /WX-)
+else()
+    set(AUTORIGAMI_PHYSX_NO_WARNING_ERRORS -Wno-error)
+endif()
 function(autorigami_relax_physx_warnings directory)
     get_property(targets DIRECTORY "${directory}" PROPERTY BUILDSYSTEM_TARGETS)
     foreach(target IN LISTS targets)
         get_target_property(type "${target}" TYPE)
         if(NOT type STREQUAL "INTERFACE_LIBRARY" AND NOT type STREQUAL "UTILITY")
-            target_compile_options("${target}" PRIVATE -Wno-error)
+            target_compile_options(
+                "${target}" PRIVATE ${AUTORIGAMI_PHYSX_NO_WARNING_ERRORS}
+            )
         endif()
     endforeach()
     get_property(subdirectories DIRECTORY "${directory}" PROPERTY SUBDIRECTORIES)
