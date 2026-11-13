@@ -55,3 +55,25 @@ def evaluate_tangent_point_hierarchical(
     opening_angle: float = 0.25,
     leaf_size: int = 8,
 ) -> TangentPointEvaluation: ...
+
+class AxialGravitySimulation:
+    def __init__(
+        self,
+        *,
+        points: Polyline,
+        collision_radius: float,
+        ignored_adjacent_vertices: int,
+        tension_stiffness: float,
+        tension_damping: float,
+        floor_height: float,
+        gravity: float,
+        linear_damping: float,
+        maximum_depenetration_velocity: float,
+        maximum_linear_velocity: float,
+        position_iterations: int,
+        velocity_iterations: int,
+        thread_count: int,
+    ) -> None: ...
+    def step(self, step_count: int, time_step: float) -> None: ...
+    def points(self) -> Polyline: ...
+    def maximum_speed(self) -> float: ...

@@ -29,17 +29,22 @@ sdist.include = [
     "cpp/cmake/Dependencies.cmake",
     "cpp/include/autorigami/geometry.h",
     "cpp/include/autorigami/optimization.h",
+    "cpp/include/autorigami/simulation.h",
     "cpp/include/autorigami/utils.h",
     "cpp/src/bindings/geometry_bindings.cpp",
     "cpp/src/bindings/optimization_bindings.cpp",
+    "cpp/src/bindings/simulation_bindings.cpp",
     "cpp/src/bindings/module.cpp",
     "cpp/src/geometry/separation.cpp",
     "cpp/src/optimization/tangent_point.cpp",
+    "cpp/src/simulation/axial_gravity.cpp",
     "cpp/src/utils/spatial_hierarchy.cpp",
     "src/autorigami/_native.pyi",
     "src/autorigami/py.typed",
 ]
 cmake.build-type = "Release"
+# Keep the build tree so that PhysX is compiled only one time.
+build-dir = ".cmake-build/{wheel_tag}"
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"

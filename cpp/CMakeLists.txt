@@ -17,14 +17,26 @@ pybind11_add_module(
     src/bindings/module.cpp
     src/bindings/geometry_bindings.cpp
     src/bindings/optimization_bindings.cpp
+    src/bindings/simulation_bindings.cpp
     src/geometry/separation.cpp
     src/optimization/tangent_point.cpp
+    src/simulation/axial_gravity.cpp
     src/utils/spatial_hierarchy.cpp
 )
 
 target_compile_features(_native PRIVATE cxx_std_20)
 target_include_directories(_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(_native PRIVATE Eigen3::Eigen)
+target_link_libraries(
+    _native
+    PRIVATE
+    Eigen3::Eigen
+    PhysXExtensions
+    PhysX
+    PhysXCommon
+    PhysXFoundation
+)
+# PhysX headers require exactly one of NDEBUG and _DEBUG.
+target_compile_definitions(_native PRIVATE NDEBUG)
 if(AUTORIGAMI_DEV_LINT)
     set_property(TARGET _native PROPERTY CXX_CLANG_TIDY "${AUTORIGAMI_CLANG_TIDY_CMD}")
 endif()
