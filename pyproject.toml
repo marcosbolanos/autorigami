@@ -45,7 +45,8 @@ build-dir = ".cmake-build/{wheel_tag}"
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
 build-verbosity = 1
-test-command = "python -c \"import autorigami._native as native; assert native.segment_segment_distance([]) == []\""
+test-requires = ["pytest"]
+test-command = "pytest {project}/tests/test_native_geometry.py {project}/tests/test_gravity_packing.py"
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
