@@ -54,7 +54,10 @@ test-command = "pytest {project}/tests/test_native_geometry.py {project}/tests/t
 archs = ["x86_64"]
 
 [tool.cibuildwheel.macos]
-archs = ["x86_64", "arm64"]
+# PhysX does not support macOS. The arm64 build passes the tests with three
+# small source patches. The x86_64 build gives a diverged simulation when CI
+# runs it under Rosetta, thus there is no Intel wheel.
+archs = ["arm64"]
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
