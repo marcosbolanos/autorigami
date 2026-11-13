@@ -11,6 +11,7 @@ void register_simulation_bindings(py::module_& module) {
     )
         .def(
             py::init([](const autorigami::PointMatrix& points,
+                        const autorigami::PinnedMask& pinned,
                         const float collision_radius,
                         const std::size_t ignored_adjacent_vertices,
                         const float tension_stiffness,
@@ -25,6 +26,7 @@ void register_simulation_bindings(py::module_& module) {
                         const unsigned int thread_count) {
                 return std::make_unique<autorigami::AxialGravitySimulation>(
                     points,
+                    pinned,
                     autorigami::AxialGravityParameters{
                         collision_radius,
                         ignored_adjacent_vertices,
@@ -43,6 +45,7 @@ void register_simulation_bindings(py::module_& module) {
             }),
             py::kw_only(),
             py::arg("points"),
+            py::arg("pinned"),
             py::arg("collision_radius"),
             py::arg("ignored_adjacent_vertices"),
             py::arg("tension_stiffness"),
@@ -66,6 +69,11 @@ void register_simulation_bindings(py::module_& module) {
             },
             py::arg("step_count"),
             py::arg("time_step")
+        )
+        .def(
+            "set_gravity",
+            &autorigami::AxialGravitySimulation::set_gravity,
+            py::arg("gravity")
         )
         .def("points", &autorigami::AxialGravitySimulation::points)
         .def(

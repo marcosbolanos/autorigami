@@ -8,6 +8,7 @@
 namespace autorigami {
 
 using PointMatrix = Eigen::Matrix<float, Eigen::Dynamic, 3, Eigen::RowMajor>;
+using PinnedMask = Eigen::Array<bool, Eigen::Dynamic, 1>;
 
 /// Rigid-body model of one centerline that can move along z only.
 ///
@@ -39,8 +40,11 @@ struct AxialGravityParameters {
 /// A PhysX scene in which a centerline falls along z until contacts stop it.
 class AxialGravitySimulation {
 public:
+    /// `pinned[i]` is true for a vertex that never moves. Pinned vertices
+    /// support the others.
     AxialGravitySimulation(
         const PointMatrix& points,
+        const PinnedMask& pinned,
         const AxialGravityParameters& parameters
     );
     ~AxialGravitySimulation();
@@ -49,6 +53,9 @@ public:
 
     /// Advance the scene by `step_count` steps of `time_step` each.
     void step(std::size_t step_count, float time_step);
+
+    /// Change the acceleration along negative z.
+    void set_gravity(float gravity);
 
     /// Current vertex positions, one row per input vertex.
     [[nodiscard]] PointMatrix points() const;

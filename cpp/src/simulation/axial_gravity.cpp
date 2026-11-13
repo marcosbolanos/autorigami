@@ -115,10 +115,13 @@ struct AxialGravitySimulation::State {
 
 AxialGravitySimulation::AxialGravitySimulation(
     const PointMatrix& points,
+    const PinnedMask& pinned,
     const AxialGravityParameters& parameters
 ) : state_(std::make_unique<State>()) {
-    if (points.rows() < 2) {
-        throw std::invalid_argument("a curve needs at least two vertices");
+    if (points.rows() < 2 || pinned.size() != points.rows()) {
+        throw std::invalid_argument(
+            "a curve needs at least two vertices and one pin flag per vertex"
+        );
     }
     if (parameters.collision_radius <= 0.0F
         || parameters.tension_stiffness < 0.0F
@@ -174,6 +177,9 @@ AxialGravitySimulation::AxialGravitySimulation(
             PxFilterData(static_cast<PxU32>(index), vertex_tag, 0, 0)
         );
         vertex->setMass(1.0F);
+        if (pinned[row]) {
+            vertex->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+        }
         vertex->setRigidDynamicLockFlags(rail);
         vertex->setLinearDamping(parameters.linear_damping);
         vertex->setMaxDepenetrationVelocity(
@@ -200,6 +206,10 @@ AxialGravitySimulation::AxialGravitySimulation(
     );
     state_->joints.reserve(vertex_count - 1);
     for (std::size_t index = 0; index + 1 < vertex_count; ++index) {
+        const auto row = static_cast<Eigen::Index>(index);
+        if (pinned[row] && pinned[row + 1]) {
+            continue;  // Both vertices are immovable.
+        }
         auto* joint = physx::PxD6JointCreate(
             physics,
             state_->vertices[index],
@@ -233,6 +243,10 @@ void AxialGravitySimulation::step(
         state_->scene->simulate(time_step);
         state_->scene->fetchResults(true);
     }
+}
+
+void AxialGravitySimulation::set_gravity(const float gravity) {
+    state_->scene->setGravity(PxVec3(0.0F, 0.0F, -gravity));
 }
 
 PointMatrix AxialGravitySimulation::points() const {
