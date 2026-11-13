@@ -209,6 +209,8 @@ def _settle(
     for step in range(_STEPS_PER_CHECK, _MAXIMUM_STEPS + 1, _STEPS_PER_CHECK):
         simulation.step(_STEPS_PER_CHECK, _TIME_STEP)
         current = simulation.points()
+        if not np.all(np.isfinite(current)):
+            raise RuntimeError(f"the gravity simulation diverged at step {step}")
         displacement = float(np.max(np.abs(current[:, 2] - previous[:, 2])))
         previous = current
         logger.info(
