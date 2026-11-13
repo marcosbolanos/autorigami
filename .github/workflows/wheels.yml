@@ -26,9 +26,6 @@ jobs:
         uses: pypa/cibuildwheel@v4.1.0
         with:
           extras: uv
-        env:
-          CIBW_ENVIRONMENT_MACOS: SKBUILD_BUILD_TOOL_ARGS=-k0
-          CIBW_ARCHS_MACOS: arm64
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v7

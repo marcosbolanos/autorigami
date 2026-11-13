@@ -35,8 +35,44 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(physx)
 
 set(PHYSX_ROOT_DIR "${physx_SOURCE_DIR}/physx")
-# PhysX has build files for Windows and Linux only. The Linux files also work
-# with Apple Clang, thus macOS uses them.
+
+# PhysX has no macOS support. Three source files need a small change for
+# Apple Clang. Each change is a text replacement, applied one time.
+function(autorigami_patch_physx file old new)
+    set(path "${PHYSX_ROOT_DIR}/source/${file}")
+    file(READ "${path}" content)
+    string(FIND "${content}" "${new}" patched)
+    if(patched EQUAL -1)
+        string(FIND "${content}" "${old}" found)
+        if(found EQUAL -1)
+            message(FATAL_ERROR "PhysX patch does not apply to ${file}")
+        endif()
+        string(REPLACE "${old}" "${new}" content "${content}")
+        file(WRITE "${path}" "${content}")
+    endif()
+endfunction()
+if(APPLE)
+    # size_t is not uint32_t or uint64_t on macOS, thus the call is ambiguous.
+    autorigami_patch_physx(
+        "foundation/FdTempAllocator.cpp"
+        "PxHighestSetBit(PxU32(size) + sizeof(Chunk) - 1)"
+        "PxHighestSetBit(PxU32(PxU32(size) + sizeof(Chunk) - 1))"
+    )
+    # The serialization tag list has no entry for macOS on arm64.
+    autorigami_patch_physx(
+        "physxextensions/src/serialization/SnSerialUtils.cpp"
+        "#elif PX_LINUX && PX_A64"
+        "#elif (PX_LINUX || PX_OSX) && PX_A64"
+    )
+    # The macOS floating-point code uses SSE, which arm64 does not have.
+    autorigami_patch_physx(
+        "foundation/unix/FdUnixFPU.cpp"
+        "PX_OSX"
+        "(PX_OSX && !PX_A64)"
+    )
+endif()
+# PhysX has build files for Windows and Linux only. macOS uses the Linux
+# files.
 if(WIN32)
     set(TARGET_BUILD_PLATFORM "windows")
 else()

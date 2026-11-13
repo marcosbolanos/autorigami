@@ -45,6 +45,8 @@ build-dir = ".cmake-build/{wheel_tag}"
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
 build-verbosity = 1
+# PhysX needs glibc, thus there are no musllinux wheels.
+skip = "*-musllinux_*"
 test-requires = ["pytest"]
 test-command = "pytest {project}/tests/test_native_geometry.py {project}/tests/test_gravity_packing.py"
 
