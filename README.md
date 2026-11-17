@@ -1,20 +1,30 @@
 # autorigami
 
-A library for algorithmic CAD of three-dimensional DNA nanostructures.
+Design curved DNA nanostructures as spirals, and make them obey the curvature and separation limits of DNA.
 
-# Running
+## Install
 
-Install with
 ```
-pip install .
+uv sync
 ```
 
-## Contributing
+This compiles the C++ code.
 
-Development and contributor workflow is documented in [CONTRIBUTING.md](/home/marcos/code/autorigami/CONTRIBUTING.md:1).
+## Start here
 
-## Example Outputs
+1. `notebooks/1_spiral_generation.ipynb`: build a spiral from segments.
+2. `notebooks/2_gravity_based_packing.ipynb`: pack it and validate it.
 
-![Example output 1](assets/Screenshot_2026-05-04_10-49-50.png)
+## Layout
 
-![Example output 2](assets/Screenshot_2026-05-04_10-50-02.png)
+| Path | Contents |
+|---|---|
+| `src/autorigami/spiral_generation` | Spiral design |
+| `src/autorigami/geometry` | Validation: curvature and separation |
+| `src/autorigami/packing` | Gravity packing |
+| `src/autorigami/viz` | 3D views for notebooks |
+| `src/autorigami/mesh_io` | Mesh export and renders |
+| `cpp` | Native code: distances and PhysX simulation |
+| `tests` | Tests |
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to develop.

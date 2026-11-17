@@ -2,54 +2,36 @@
 
 ## Setup
 
-Install the dev toolchain once:
-
 ```bash
-uv sync --group dev
+uv sync
 ```
 
-Refresh the editable install whenever you add, delete, or rename Python package files:
-
-```bash
-uv pip install --python .venv/bin/python -e . --reinstall
-```
+This installs the dev tools and compiles the C++ code. Changes to Python files need no reinstall.
 
 ## Native C++ development
 
-Rebuild the native extension when you change files under `cpp/`:
+The native code is in `cpp/include/autorigami` and `cpp/src`. Rebuild it when you change a file under `cpp/`:
 
 ```bash
-./scripts/build_native.sh
+uv sync --reinstall-package autorigami
 ```
 
-That script configures CMake in `.cmake-build/native`, builds the `_native` module, installs it in-place to `src/autorigami/`, and refreshes `compile_commands.json` for `clangd`.
+The build tree stays in `.cmake-build`, so PhysX compiles only one time.
 
-Native code is organized under:
-
-```text
-cpp/include/autorigami/...
-cpp/src/...
-cpp/tests/...
-```
+If you change a binding, update `src/autorigami/_native.pyi` too.
 
 ## Testing
 
-We use pytest for python test and ctest for C++ tests
-
 ```bash
-./scripts/build_native.sh
-ctest --test-dir .cmake-build/native --output-on-failure
-./.venv/bin/python -m pytest
+uv run pytest
 ```
-
-If you only changed Python code, skip the native rebuild and just run pytest.
 
 ## Linting
 
 ```bash
 uv run ruff format
-./scripts/build_native.sh
+uv run ruff check
+uv run pyright
 ```
 
-C/C++ linting is handled by `clang-tidy`, and it runs automatically during CMake builds.
-This is enabled by default in the dev build script (`./scripts/build_native.sh`).
+`clang-tidy` runs during the C++ build when the CMake option `AUTORIGAMI_DEV_LINT` is `ON`. It is `OFF` by default.
