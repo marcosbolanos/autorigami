@@ -54,3 +54,6 @@ htmlcov/
 .cache/
 cpp/Testing/
 cpp/tests/Testing/
+
+# marimo
+__marimo__/

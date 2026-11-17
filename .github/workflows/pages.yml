@@ -1,0 +1,65 @@
+name: Pages
+
+# Run the notebooks and publish them as interactive pages.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - notebooks/**
+      - src/**
+      - cpp/**
+      - CMakeLists.txt
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v6
+
+      # Keep the build tree so that PhysX is compiled only one time.
+      - uses: actions/cache@v4
+        with:
+          path: .cmake-build
+          key: cmake-build-${{ runner.os }}-${{ hashFiles('cpp/cmake/Dependencies.cmake') }}
+
+      - run: uv sync
+
+      # Notebook 2 reads the file that notebook 1 saves.
+      - name: Export the notebooks
+        working-directory: notebooks
+        run: |
+          mkdir -p ../outputs ../site
+          for notebook in 1_spiral_generation 2_gravity_based_packing; do
+            uv run marimo export html "$notebook.py" -o "../site/$notebook.html"
+          done
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

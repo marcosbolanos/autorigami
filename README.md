@@ -16,8 +16,12 @@ This compiles the C++ code.
 
 ## Start here
 
-1. `notebooks/1_spiral_generation.ipynb`: build a spiral from segments.
-2. `notebooks/2_gravity_based_packing.ipynb`: pack it and validate it.
+The notebooks are [marimo](https://marimo.io) files. Read them with their interactive 3D views:
+
+1. [Design a spiral](https://marcosbolanos.github.io/autorigami/1_spiral_generation.html)
+2. [Pack it under gravity](https://marcosbolanos.github.io/autorigami/2_gravity_based_packing.html)
+
+Or run them: `uv run marimo edit notebooks/1_spiral_generation.py`.
 
 ## Layout
 
