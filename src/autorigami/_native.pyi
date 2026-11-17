@@ -40,6 +40,7 @@ class AxialGravitySimulation:
         *,
         points: Polyline,
         pinned: npt.NDArray[np.bool_],
+        curve_indices: npt.NDArray[np.uint32],
         collision_radius: float,
         ignored_adjacent_vertices: int,
         tension_stiffness: float,

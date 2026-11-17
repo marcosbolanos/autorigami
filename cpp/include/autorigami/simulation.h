@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 
 #include <Eigen/Core>
@@ -9,18 +10,20 @@ namespace autorigami {
 
 using PointMatrix = Eigen::Matrix<float, Eigen::Dynamic, 3, Eigen::RowMajor>;
 using PinnedMask = Eigen::Array<bool, Eigen::Dynamic, 1>;
+using CurveIndices = Eigen::Array<std::uint32_t, Eigen::Dynamic, 1>;
 
-/// Rigid-body model of one centerline that can move along z only.
+/// Rigid-body model of centerlines that can move along z only.
 ///
 /// Each vertex is one sphere on a vertical rail: its x and y never change.
 /// Lengths are in the units of the input polyline (nm in this project).
 struct AxialGravityParameters {
     /// Sphere radius. Two vertices touch when they are `2 * radius` apart.
     float collision_radius;
-    /// Vertex pairs whose index difference is at most this never collide.
+    /// Vertex pairs of one curve whose index difference is at most this never
+    /// collide. Vertices of different curves always collide.
     std::size_t ignored_adjacent_vertices;
     /// Stiffness of the spring on the height difference of consecutive
-    /// vertices. It acts as string tension along the curve.
+    /// vertices of one curve. It acts as string tension along the curve.
     float tension_stiffness;
     float tension_damping;
     /// Height of the horizontal floor that supports the curve.
@@ -37,14 +40,16 @@ struct AxialGravityParameters {
     unsigned int thread_count;
 };
 
-/// A PhysX scene in which a centerline falls along z until contacts stop it.
+/// A PhysX scene in which centerlines fall along z until contacts stop them.
 class AxialGravitySimulation {
 public:
+    /// `points` holds the vertices of all curves, one curve after the other.
     /// `pinned[i]` is true for a vertex that never moves. Pinned vertices
-    /// support the others.
+    /// support the others. `curve_indices[i]` is the curve of vertex `i`.
     AxialGravitySimulation(
         const PointMatrix& points,
         const PinnedMask& pinned,
+        const CurveIndices& curve_indices,
         const AxialGravityParameters& parameters
     );
     ~AxialGravitySimulation();

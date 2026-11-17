@@ -6,6 +6,7 @@ from autorigami.spiral_generation.spiral import (
     Terminus,
     YSegment,
     load_curves,
+    save_curves,
 )
 from autorigami.spiral_generation.validation import (
     CrossCurveSeparation,
@@ -23,5 +24,6 @@ __all__ = [
     "Terminus",
     "YSegment",
     "load_curves",
+    "save_curves",
     "validate_curves",
 ]

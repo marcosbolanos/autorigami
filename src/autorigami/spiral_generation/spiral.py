@@ -24,6 +24,7 @@ obey the curvature and separation limits of DNA, and
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 import math
 from pathlib import Path
@@ -481,7 +482,7 @@ class Spiral:
         Args:
             path: The file to write. Use the extension `.npz`.
         """
-        np.savez(path, *self.curves())
+        save_curves(path, self.curves())
 
     def _root(self, x_radius: float, y_radius: float) -> Terminus:
         assert not self.segments, (
@@ -501,8 +502,18 @@ class Spiral:
         )
 
 
+def save_curves(path: str | Path, curves: Sequence[Polyline]) -> None:
+    """Write curves to a `.npz` file. Read them again with `load_curves`.
+
+    Args:
+        path: The file to write. Use the extension `.npz`.
+        curves: Polylines with shape (n, 3), in nm.
+    """
+    np.savez(path, *curves)
+
+
 def load_curves(path: str | Path) -> list[Polyline]:
-    """Read the curves that `Spiral.save` wrote.
+    """Read the curves that `Spiral.save` or `save_curves` wrote.
 
     Returns:
         One float32 polyline with shape (n, 3) for each curve, in the

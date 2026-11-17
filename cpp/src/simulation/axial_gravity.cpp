@@ -54,8 +54,9 @@ PhysicsContext& physics_context() {
 
 /// Discard contacts between vertices that are neighbors along the curve.
 ///
-/// `word0` is the vertex index and `word1` marks curve vertices. The constant
-/// block holds the largest index difference that never collides.
+/// `word0` is the vertex index, `word1` marks curve vertices and `word2` is
+/// the curve index. The constant block holds the largest index difference
+/// that never collides. Vertices of different curves always collide.
 PxFilterFlags curve_filter_shader(
     PxFilterObjectAttributes /*attributes0*/,
     PxFilterData data0,
@@ -65,7 +66,8 @@ PxFilterFlags curve_filter_shader(
     const void* constant_block,
     PxU32 /*constant_block_size*/
 ) {
-    if (data0.word1 == vertex_tag && data1.word1 == vertex_tag) {
+    if (data0.word1 == vertex_tag && data1.word1 == vertex_tag
+        && data0.word2 == data1.word2) {
         const PxU32 ignored_adjacent_vertices =
             *static_cast<const PxU32*>(constant_block);
         const PxU32 index_difference = data0.word0 > data1.word0
@@ -116,11 +118,14 @@ struct AxialGravitySimulation::State {
 AxialGravitySimulation::AxialGravitySimulation(
     const PointMatrix& points,
     const PinnedMask& pinned,
+    const CurveIndices& curve_indices,
     const AxialGravityParameters& parameters
 ) : state_(std::make_unique<State>()) {
-    if (points.rows() < 2 || pinned.size() != points.rows()) {
+    if (points.rows() < 2 || pinned.size() != points.rows()
+        || curve_indices.size() != points.rows()) {
         throw std::invalid_argument(
-            "a curve needs at least two vertices and one pin flag per vertex"
+            "a curve needs at least two vertices, and one pin flag and one "
+            "curve index per vertex"
         );
     }
     if (parameters.collision_radius <= 0.0F
@@ -174,7 +179,9 @@ AxialGravitySimulation::AxialGravitySimulation(
             *vertex, sphere, *state_->material
         );
         shape->setSimulationFilterData(
-            PxFilterData(static_cast<PxU32>(index), vertex_tag, 0, 0)
+            PxFilterData(
+                static_cast<PxU32>(index), vertex_tag, curve_indices[row], 0
+            )
         );
         vertex->setMass(1.0F);
         if (pinned[row]) {
@@ -209,6 +216,9 @@ AxialGravitySimulation::AxialGravitySimulation(
         const auto row = static_cast<Eigen::Index>(index);
         if (pinned[row] && pinned[row + 1]) {
             continue;  // Both vertices are immovable.
+        }
+        if (curve_indices[row] != curve_indices[row + 1]) {
+            continue;  // The end of one curve and the start of the next.
         }
         auto* joint = physx::PxD6JointCreate(
             physics,

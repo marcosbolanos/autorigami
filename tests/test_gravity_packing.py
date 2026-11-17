@@ -1,10 +1,11 @@
 import numpy as np
 import pytest
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 
 from autorigami.geometry.reparametrize import reparametrize_arc_length
 from autorigami.geometry.validation import validate_polyline
-from autorigami.packing import pack_under_gravity
+from autorigami.packing import pack_curves_under_gravity, pack_under_gravity
+from autorigami.spiral_generation import validate_curves
 from autorigami.types import Polyline
 
 
@@ -38,7 +39,7 @@ def test_packing_gives_a_valid_tighter_curve_with_the_same_horizontal_shape(
 
     assert validate_polyline(result.points).valid
     assert result.validation.valid
-    horizontal_distance, _ = cKDTree(spiral[:, :2]).query(result.points[:, :2])
+    horizontal_distance, _ = KDTree(spiral[:, :2]).query(result.points[:, :2])
     assert float(horizontal_distance.max()) < 0.2
     if pitch > 3.0:
         assert result.final_height < 0.75 * result.initial_height
@@ -50,3 +51,21 @@ def test_packing_gives_a_valid_tighter_curve_with_the_same_horizontal_shape(
 def test_packing_rejects_a_curve_with_less_than_two_turns() -> None:
     with pytest.raises(AssertionError, match="more than one turn"):
         pack_under_gravity(_spiral(16.0, 16.0, 5.2, turns=0.5))
+
+
+def test_a_second_curve_comes_to_rest_on_the_first_curve() -> None:
+    lower = _spiral(16.0, 16.0, 5.2, turns=4.0)
+    upper = _spiral(16.0, 16.0, 5.2, turns=3.0)
+    upper[:, 2] += lower[:, 2].max() + 8.0
+
+    result = pack_curves_under_gravity([lower, upper])
+
+    assert result.validation.valid
+    assert validate_curves(result.curves).valid
+    assert len(result.curves) == 2
+    packed_lower, packed_upper = result.curves
+    # The anchored first turn, three more turns of the lower curve, one
+    # contact distance up to the start of the upper curve, and its three turns.
+    assert result.final_height == pytest.approx(5.2 + 7.0 * 2.65, abs=1.0)
+    distance, _ = KDTree(packed_lower).query(packed_upper)
+    assert float(distance.min()) == pytest.approx(2.65, abs=0.1)
