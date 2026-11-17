@@ -2,6 +2,10 @@
 
 Design curved DNA nanostructures as spirals, and make them obey the curvature and separation limits of DNA.
 
+![A branching tube before and after gravity packing](assets/gravity_packing.png)
+
+*A branching tube as designed (left) and after gravity packing (right).*
+
 ## Install
 
 ```
